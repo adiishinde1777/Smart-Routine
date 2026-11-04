@@ -34,17 +34,21 @@
 
 ## 🔌 ESP8266 + RTC + 3 LEDs Pin Summary (पिन जोडणी)
 
-| ESP8266 Pin | GPIO | घटक (Component) | कनेक्शन तपशील |
-|---|---|---|---|
-| **D0** | GPIO 16 | **Buzzer** | Positive (+) leg to D0, Negative (-) to GND |
-| **D1** | GPIO 5 | **I2C SCL (Shared)** | 16x2 LCD SCL आणि DS3231 RTC SCL दोन्ही एकत्र D1 ला |
-| **D2** | GPIO 4 | **I2C SDA (Shared)** | 16x2 LCD SDA आणि DS3231 RTC SDA दोन्ही एकत्र D2 ला |
-| **D5** | GPIO 14 | **LED 1 (Slot 1)** | 220Ω रेझिस्टरद्वारे (+) पाय D5 ला, (-) पाय GND ला (कप्पा १) |
-| **D6** | GPIO 12 | **Push Button** | बटणाचा पहिला पाय D6 ला, दुसरा पाय GND ला (INPUT_PULLUP) |
-| **D7** | GPIO 13 | **LED 2 (Slot 2)** | 220Ω रेझिस्टरद्वारे (+) पाय D7 ला, (-) पाय GND ला (कप्पा २) |
-| **D8** | GPIO 15 | **LED 3 (Slot 3)** | 220Ω रेझिस्टरद्वारे (+) पाय D8 ला, (-) पाय GND ला (कप्पा ३) |
-| **3V3** | 3.3V | **VCC Power** | LCD VCC आणि RTC VCC दोन्ही एकत्र 3.3V पॉवरला |
-| **GND** | Ground | **Common Ground** | LCD, RTC, Buzzer, Button, आणि सर्व ३ LEDs चा कॉमन GND |
+| घटक (Component) | ESP8266 Pin | तपशीलवार कनेक्शन |
+|---|---|---|
+| **LCD SDA** | **D2** | 16x2 I2C LCD ची SDA पिन |
+| **LCD SCL** | **D1** | 16x2 I2C LCD ची SCL पिन |
+| **RTC SDA** | **D2** | DS3231 RTC ची SDA पिन (LCD SDA सह D2 वर) |
+| **RTC SCL** | **D1** | DS3231 RTC ची SCL पिन (LCD SCL सह D1 वर) |
+| **RTC VCC** | **3V3** | RTC पॉवर पिन (3.3V) |
+| **RTC GND** | **GND** | RTC ग्राउंड |
+| **Buzzer +** | **D0** | बझरचा (+) पाय D0 ला |
+| **Buzzer –** | **GND** | बझरचा (-) पाय GND ला |
+| **LED 1 +** | **D5** | 220Ω रेझिस्टरद्वारे D5 ला (कप्पा १) |
+| **LED 2 +** | **D6** | 220Ω रेझिस्टरद्वारे D6 ला (कप्पा २) |
+| **LED 3 +** | **D7** | 220Ω रेझिस्टरद्वारे D7 ला (कप्पा ३) |
+| **सर्व LED –** | **GND** | सर्व LEDs चे (-) पाय एकत्र GND ला |
+| **Push Button** | **D4 आणि GND** | बटणाचा एक पाय D4 ला, दुसरा पाय GND ला |
 
 ---
 

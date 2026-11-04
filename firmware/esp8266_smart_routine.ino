@@ -1,21 +1,25 @@
 /*
  * ======================================================================================
  * PROJECT: Smart Routine - Personal Lifestyle, Gym & Medicine Assistant
- * HARDWARE FIRMWARE: ESP8266 NodeMCU (I2C LCD + DS3231 RTC + 3 LEDs + Buzzer + Button)
+ * FIRMWARE: ESP8266 NodeMCU (I2C LCD + DS3231 RTC + 3 LEDs + Buzzer + Push Button)
  * ======================================================================================
  * 
- * ---------------- COMPLETE PIN CONFIGURATION CHART ----------------
- * ESP8266 Pin | Component       | Wiring Details
- * ------------+-----------------+-------------------------------------------------------
- * D0 (GPIO 16)| Buzzer          | Positive (+) leg to D0, Negative (-) to GND
- * D1 (GPIO 5) | I2C SCL         | Shared I2C Clock: Connect BOTH LCD SCL & RTC SCL to D1
- * D2 (GPIO 4) | I2C SDA         | Shared I2C Data:  Connect BOTH LCD SDA & RTC SDA to D2
- * D5 (GPIO 14)| LED 1 (Slot 1)  | Anode (+) via 220Ω to D5, Cathode (-) to GND (Box 1)
- * D6 (GPIO 12)| Push Button     | Pin 1 to D6, Pin 2 to GND (INPUT_PULLUP)
- * D7 (GPIO 13)| LED 2 (Slot 2)  | Anode (+) via 220Ω to D7, Cathode (-) to GND (Box 2)
- * D8 (GPIO 15)| LED 3 (Slot 3)  | Anode (+) via 220Ω to D8, Cathode (-) to GND (Box 3)
- * 3V3         | VCC (3.3V)      | Shared 3.3V Power for LCD VCC & RTC VCC
- * GND         | Ground          | Common GND for LCD, RTC, Buzzer, Button, and all 3 LEDs
+ * ---------------- COMPLETE PIN CONFIGURATION (Matching Summary Diagram) ----------------
+ * Component   | ESP8266 Pin | Wiring Details
+ * ------------+-------------+-----------------------------------------------------------
+ * LCD SDA     | D2 (GPIO 4) | 16x2 I2C LCD SDA
+ * LCD SCL     | D1 (GPIO 5) | 16x2 I2C LCD SCL
+ * RTC SDA     | D2 (GPIO 4) | DS3231/DS1307 RTC SDA (Shared with LCD SDA on D2)
+ * RTC SCL     | D1 (GPIO 5) | DS3231/DS1307 RTC SCL (Shared with LCD SCL on D1)
+ * RTC VCC     | 3V3         | 3.3V Power (Shared with LCD VCC)
+ * RTC GND     | GND         | Ground
+ * Buzzer +    | D0 (GPIO 16)| Positive (+) leg to D0
+ * Buzzer -    | GND         | Negative (-) leg to GND
+ * LED 1 +     | D5 (GPIO 14)| Anode (+) through 220Ω to D5 (Slot 1)
+ * LED 2 +     | D6 (GPIO 12)| Anode (+) through 220Ω to D6 (Slot 2)
+ * LED 3 +     | D7 (GPIO 13)| Anode (+) through 220Ω to D7 (Slot 3)
+ * सर्व LED -   | GND         | Cathode (-) of all 3 LEDs to GND
+ * Push Button | D4 & GND    | Pin 1 to D4 (GPIO 2), Pin 2 to GND (INPUT_PULLUP)
  * ======================================================================================
  */
 
@@ -49,13 +53,13 @@ const char* DEVICE_ID     = "ESP8266-SR-01";
 #define D8 15
 #endif
 
-#define PIN_BUZZER       D0  // D0 (GPIO 16) -> Buzzer
-#define PIN_LCD_SCL      D1  // D1 (GPIO 5)  -> I2C SCL (Shared: LCD + RTC)
-#define PIN_LCD_SDA      D2  // D2 (GPIO 4)  -> I2C SDA (Shared: LCD + RTC)
-#define PIN_LED_1        D5  // D5 (GPIO 14) -> LED 1 (Medicine Slot / Box 1)
-#define PIN_BUTTON       D6  // D6 (GPIO 12) -> Push Button (INPUT_PULLUP to GND)
-#define PIN_LED_2        D7  // D7 (GPIO 13) -> LED 2 (Medicine Slot / Box 2)
-#define PIN_LED_3        D8  // D8 (GPIO 15) -> LED 3 (Medicine Slot / Box 3)
+#define PIN_BUZZER       D0  // D0 (GPIO 16) -> Buzzer +
+#define PIN_LCD_SCL      D1  // D1 (GPIO 5)  -> LCD SCL & RTC SCL
+#define PIN_LCD_SDA      D2  // D2 (GPIO 4)  -> LCD SDA & RTC SDA
+#define PIN_BUTTON       D4  // D4 (GPIO 2)  -> Push Button (D4 & GND)
+#define PIN_LED_1        D5  // D5 (GPIO 14) -> LED 1 + (through 220Ω)
+#define PIN_LED_2        D6  // D6 (GPIO 12) -> LED 2 + (through 220Ω)
+#define PIN_LED_3        D7  // D7 (GPIO 13) -> LED 3 + (through 220Ω)
 
 // ---------------- BUZZER TYPE CONFIGURATION ----------------
 // बहुतांश Arduino Starter Kits मध्ये ACTIVE Buzzer असतो (digitalWrite HIGH ने वाजतो).
@@ -203,7 +207,7 @@ void checkRoutineStatus() {
 
         if (!isAlertActive) {
           isAlertActive = true;
-          Serial.printf("\n🔔 [ALERT] Reminder Time! Active Slots: [1:%s, 2:%s, 3:%s] - %s\n",
+          Serial.printf("\n🔔 [ALERT] Reminder Time! Active Slots: [1(D5):%s, 2(D6):%s, 3(D7):%s] - %s\n",
                         alertLed1 ? "ON" : "OFF",
                         alertLed2 ? "ON" : "OFF",
                         alertLed3 ? "ON" : "OFF",
@@ -230,11 +234,11 @@ void checkRoutineStatus() {
   http.end();
 }
 
-// ---------------- पुश बटन (D6) दाबल्यावर Server ला Confirmation पाठवणे ----------------
+// ---------------- पुश बटन (D4) दाबल्यावर Server ला Confirmation पाठवणे ----------------
 void sendButtonConfirmation() {
   if (WiFi.status() != WL_CONNECTED) return;
 
-  Serial.println("\n👉 [BUTTON D6] Push Button Pressed! Confirming Routine...");
+  Serial.println("\n👉 [BUTTON D4] Push Button Pressed! Confirming Routine...");
   updateLCD("Confirming...", "Please wait...");
 
   HTTPClient http;
@@ -296,11 +300,11 @@ void setup() {
   Serial.println("=======================================================");
 
   // Pin Modes Setup
-  pinMode(PIN_BUTTON, INPUT_PULLUP); // D6 Push Button (Connected to GND)
+  pinMode(PIN_BUTTON, INPUT_PULLUP); // D4 Push Button (D4 आणि GND)
   pinMode(PIN_BUZZER, OUTPUT);       // D0 Buzzer
   pinMode(PIN_LED_1, OUTPUT);        // D5 LED 1 (Slot 1)
-  pinMode(PIN_LED_2, OUTPUT);        // D7 LED 2 (Slot 2)
-  pinMode(PIN_LED_3, OUTPUT);        // D8 LED 3 (Slot 3)
+  pinMode(PIN_LED_2, OUTPUT);        // D6 LED 2 (Slot 2)
+  pinMode(PIN_LED_3, OUTPUT);        // D7 LED 3 (Slot 3)
 
   buzzerOff();
   allLedsOff();
@@ -308,20 +312,20 @@ void setup() {
   // 1. HARDWARE SELF-TEST ON BOOT (Sequentially tests all 3 LEDs & Buzzer)
   Serial.println("\n[TEST] ---------------- HARDWARE BOOT SELF-TEST ----------------");
   
-  // LED 1 Test
+  // LED 1 Test (D5)
   Serial.println("[TEST] Testing LED 1 (D5 / Box 1)...");
   digitalWrite(PIN_LED_1, HIGH);
   delay(200);
   digitalWrite(PIN_LED_1, LOW);
 
-  // LED 2 Test
-  Serial.println("[TEST] Testing LED 2 (D7 / Box 2)...");
+  // LED 2 Test (D6)
+  Serial.println("[TEST] Testing LED 2 (D6 / Box 2)...");
   digitalWrite(PIN_LED_2, HIGH);
   delay(200);
   digitalWrite(PIN_LED_2, LOW);
 
-  // LED 3 Test
-  Serial.println("[TEST] Testing LED 3 (D8 / Box 3)...");
+  // LED 3 Test (D7)
+  Serial.println("[TEST] Testing LED 3 (D7 / Box 3)...");
   digitalWrite(PIN_LED_3, HIGH);
   delay(200);
   digitalWrite(PIN_LED_3, LOW);
@@ -399,7 +403,7 @@ void setup() {
 
 // ---------------- MAIN LOOP ----------------
 void loop() {
-  // 1. Check Push Button on D6 (Active LOW due to INPUT_PULLUP)
+  // 1. Check Push Button on D4 (Active LOW due to INPUT_PULLUP)
   if (digitalRead(PIN_BUTTON) == LOW) {
     delay(50); // Debounce delay
     if (digitalRead(PIN_BUTTON) == LOW) {

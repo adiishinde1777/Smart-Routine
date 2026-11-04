@@ -80,8 +80,8 @@ export default function SimulatorPage() {
             </div>
             <div className="text-[11px] text-slate-600 space-y-1">
               <div>• LED 1 → <strong>D5 (GPIO 14)</strong> (Slot 1)</div>
-              <div>• LED 2 → <strong>D7 (GPIO 13)</strong> (Slot 2)</div>
-              <div>• LED 3 → <strong>D8 (GPIO 15)</strong> (Slot 3)</div>
+              <div>• LED 2 → <strong>D6 (GPIO 12)</strong> (Slot 2)</div>
+              <div>• LED 3 → <strong>D7 (GPIO 13)</strong> (Slot 3)</div>
               <div>• Resistors → <strong>220Ω</strong> to GND</div>
               <div className="text-[10px] text-purple-600 font-sans font-semibold pt-1">
                 Multi-LED simultaneous blink
@@ -111,7 +111,7 @@ export default function SimulatorPage() {
               <span>Push Button (Confirm)</span>
             </div>
             <div className="text-[11px] text-slate-600 space-y-1">
-              <div>• Pin 1 → <strong>D6 (GPIO 12)</strong></div>
+              <div>• Pin 1 → <strong>D4 (GPIO 2)</strong></div>
               <div>• Pin 2 → <strong>GND</strong></div>
               <div className="text-[10px] text-emerald-600 font-sans font-semibold pt-1">
                 Acknowledge dose & stop alert
