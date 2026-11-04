@@ -55,34 +55,36 @@ export default function SimulatorPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs font-mono-code">
           
-          {/* LCD */}
+          {/* LCD & RTC Shared I2C */}
           <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
             <div className="font-bold text-slate-900 text-sm flex items-center space-x-1.5 font-sans">
               <Clock className="w-4 h-4 text-blue-600" />
-              <span>16x2 I2C LCD Display</span>
+              <span>16x2 LCD & DS3231 RTC</span>
             </div>
             <div className="text-[11px] text-slate-600 space-y-1">
-              <div>• SDA → <strong>D2 (GPIO 4)</strong></div>
-              <div>• SCL → <strong>D1 (GPIO 5)</strong></div>
-              <div>• VCC → <strong>3V3 (3.3V)</strong></div>
-              <div>• GND → <strong>GND</strong></div>
+              <div>• SDA → <strong>D2 (GPIO 4)</strong> (Shared)</div>
+              <div>• SCL → <strong>D1 (GPIO 5)</strong> (Shared)</div>
+              <div>• VCC → <strong>3V3</strong> (Shared)</div>
+              <div>• GND → <strong>GND</strong> (Shared)</div>
               <div className="text-[10px] text-teal-600 font-sans font-semibold pt-1">
-                I2C Address: 0x27 or 0x3F
+                LCD (0x27) & RTC (0x68) on same I2C
               </div>
             </div>
           </div>
 
-          {/* Button */}
+          {/* 3 LEDs for 3 Medicine Boxes */}
           <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
             <div className="font-bold text-slate-900 text-sm flex items-center space-x-1.5 font-sans">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>Push Button (Confirm)</span>
+              <Cpu className="w-4 h-4 text-purple-600" />
+              <span>3 LEDs (Boxes 1, 2, 3)</span>
             </div>
             <div className="text-[11px] text-slate-600 space-y-1">
-              <div>• Pin 1 → <strong>D6 (GPIO 12)</strong></div>
-              <div>• Pin 2 → <strong>GND</strong></div>
-              <div className="text-[10px] text-emerald-600 font-sans font-semibold pt-1">
-                Internal INPUT_PULLUP Active
+              <div>• LED 1 → <strong>D5 (GPIO 14)</strong> (Slot 1)</div>
+              <div>• LED 2 → <strong>D7 (GPIO 13)</strong> (Slot 2)</div>
+              <div>• LED 3 → <strong>D8 (GPIO 15)</strong> (Slot 3)</div>
+              <div>• Resistors → <strong>220Ω</strong> to GND</div>
+              <div className="text-[10px] text-purple-600 font-sans font-semibold pt-1">
+                Multi-LED simultaneous blink
               </div>
             </div>
           </div>
@@ -97,23 +99,22 @@ export default function SimulatorPage() {
               <div>• Positive (+) → <strong>D0 (GPIO 16)</strong></div>
               <div>• Negative (-) → <strong>GND</strong></div>
               <div className="text-[10px] text-amber-600 font-sans font-semibold pt-1">
-                Beeps on reminder trigger
+                Beeps along with active LEDs
               </div>
             </div>
           </div>
 
-          {/* LED */}
+          {/* Button */}
           <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
             <div className="font-bold text-slate-900 text-sm flex items-center space-x-1.5 font-sans">
-              <Cpu className="w-4 h-4 text-purple-600" />
-              <span>Status LED</span>
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <span>Push Button (Confirm)</span>
             </div>
             <div className="text-[11px] text-slate-600 space-y-1">
-              <div>• LED (+) → <strong>D5 (GPIO 14)</strong></div>
-              <div>• Resistor → 220Ω</div>
-              <div>• LED (-) → <strong>GND</strong></div>
-              <div className="text-[10px] text-purple-600 font-sans font-semibold pt-1">
-                Alert & Confirmation Indicator
+              <div>• Pin 1 → <strong>D6 (GPIO 12)</strong></div>
+              <div>• Pin 2 → <strong>GND</strong></div>
+              <div className="text-[10px] text-emerald-600 font-sans font-semibold pt-1">
+                Acknowledge dose & stop alert
               </div>
             </div>
           </div>

@@ -32,17 +32,19 @@
 
 ---
 
-## 🔌 ESP8266 Pin Summary (पिन जोडणी)
+## 🔌 ESP8266 + RTC + 3 LEDs Pin Summary (पिन जोडणी)
 
 | ESP8266 Pin | GPIO | घटक (Component) | कनेक्शन तपशील |
 |---|---|---|---|
 | **D0** | GPIO 16 | **Buzzer** | Positive (+) leg to D0, Negative (-) to GND |
-| **D1** | GPIO 5 | **LCD SCL** | 16x2 I2C LCD SCL Pin |
-| **D2** | GPIO 4 | **LCD SDA** | 16x2 I2C LCD SDA Pin |
-| **D5** | GPIO 14 | **LED** | Anode (+) via 220Ω resistor to D5, Cathode (-) to GND |
-| **D6** | GPIO 12 | **Push Button** | Pin 1 to D6, Pin 2 to GND (INPUT_PULLUP) |
-| **3V3** | 3.3V | **LCD VCC** | 16x2 I2C LCD Power Supply (3.3V) |
-| **GND** | Ground | **Common Ground** | Common GND for LCD, Buzzer, LED, and Button |
+| **D1** | GPIO 5 | **I2C SCL (Shared)** | 16x2 LCD SCL आणि DS3231 RTC SCL दोन्ही एकत्र D1 ला |
+| **D2** | GPIO 4 | **I2C SDA (Shared)** | 16x2 LCD SDA आणि DS3231 RTC SDA दोन्ही एकत्र D2 ला |
+| **D5** | GPIO 14 | **LED 1 (Slot 1)** | 220Ω रेझिस्टरद्वारे (+) पाय D5 ला, (-) पाय GND ला (कप्पा १) |
+| **D6** | GPIO 12 | **Push Button** | बटणाचा पहिला पाय D6 ला, दुसरा पाय GND ला (INPUT_PULLUP) |
+| **D7** | GPIO 13 | **LED 2 (Slot 2)** | 220Ω रेझिस्टरद्वारे (+) पाय D7 ला, (-) पाय GND ला (कप्पा २) |
+| **D8** | GPIO 15 | **LED 3 (Slot 3)** | 220Ω रेझिस्टरद्वारे (+) पाय D8 ला, (-) पाय GND ला (कप्पा ३) |
+| **3V3** | 3.3V | **VCC Power** | LCD VCC आणि RTC VCC दोन्ही एकत्र 3.3V पॉवरला |
+| **GND** | Ground | **Common Ground** | LCD, RTC, Buzzer, Button, आणि सर्व ३ LEDs चा कॉमन GND |
 
 ---
 

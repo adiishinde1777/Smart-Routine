@@ -584,28 +584,9 @@ router.post('/esp8266/trigger-test', (req, res) => {
 });
 
 // 1. ESP8266 Poll/Check Endpoint: GET /api/esp8266/check
-// Returns active routine alert if current time matches scheduled routine, or returns next routine
+// Returns active routine alert if current time matches scheduled routine, supports multiple LEDs (Compartments 1, 2, 3)
 router.get('/esp8266/check', async (req, res) => {
   const deviceId = req.query.deviceId || 'ESP8266-SR-01';
-
-  // 1. Check for manual test trigger
-  if (Date.now() < manualTestActiveUntil) {
-    return res.json({
-      active: true,
-      reminderId: 'test_alert',
-      routineName: 'TEST ALARM',
-      itemType: 'test',
-      time: 'NOW',
-      foodRelation: 'Testing Hardware',
-      compartment: 1,
-      buzzer: true,
-      led: true,
-      lcdLine1: 'TESTING ALARM',
-      lcdLine2: 'Buzzer & LED ON!'
-    });
-  }
-
-  // 2. Local time calculation
   const now = new Date();
   const currentHours = now.getHours();
   const currentMinutes = now.getMinutes();
@@ -613,7 +594,40 @@ router.get('/esp8266/check', async (req, res) => {
   const currentTotalMinutes = currentHours * 60 + currentMinutes;
   const todayStr = now.toISOString().split('T')[0];
 
-  // 3. Load all active routines (combine MySQL routines + store.routines)
+  const timeComponents = {
+    year: now.getFullYear(),
+    month: now.getMonth() + 1,
+    day: now.getDate(),
+    hour: currentHours,
+    minute: currentMinutes,
+    second: now.getSeconds()
+  };
+
+  // 1. Check for manual test trigger
+  if (Date.now() < manualTestActiveUntil) {
+    return res.json({
+      active: true,
+      count: 3,
+      reminderId: 'test_alert',
+      reminderIds: ['test_alert'],
+      routineName: 'TEST ALARM',
+      itemType: 'test',
+      time: 'NOW',
+      foodRelation: 'Testing Hardware',
+      compartment: 1,
+      activeCompartments: [1, 2, 3],
+      led1: true,
+      led2: true,
+      led3: true,
+      buzzer: true,
+      led: true,
+      lcdLine1: 'TESTING ALARM',
+      lcdLine2: 'All 3 LEDs ON!',
+      timeComponents
+    });
+  }
+
+  // 2. Load all active routines (combine MySQL routines + store.routines)
   let allRoutines = [];
   if (isMySQLConnected()) {
     try {
@@ -630,7 +644,7 @@ router.get('/esp8266/check', async (req, res) => {
             dosage: r.dosage,
             mealType: r.meal_type,
             foodRelation: r.food_relation,
-            compartment: r.compartment,
+            compartment: Number(r.compartment) || 1,
             notes: r.notes,
             isActive: true
           });
@@ -646,13 +660,14 @@ router.get('/esp8266/check', async (req, res) => {
     if (r.isActive && !allRoutines.some(rt => rt.id === r.id)) {
       allRoutines.push({
         ...r,
+        compartment: Number(r.compartment) || 1,
         timeSlot: formatTimeSlot(r.timeSlot)
       });
     }
   });
 
-  // 4. Find triggered routine within active reminder window (diff >= 0 && diff <= 30 mins)
-  let triggeredRoutine = null;
+  // 3. Find ALL triggered routines within active reminder window (diff >= 0 && diff <= 30 mins)
+  const triggeredRoutines = [];
 
   for (const r of allRoutines) {
     if (!r.timeSlot || !r.timeSlot.includes(':')) continue;
@@ -681,44 +696,79 @@ router.get('/esp8266/check', async (req, res) => {
 
     // Trigger alert if current time has reached routine time and is within 30 minutes
     if (diff >= 0 && diff <= 30) {
-      triggeredRoutine = r;
-      break;
+      triggeredRoutines.push(r);
     }
   }
 
-  if (triggeredRoutine) {
-    // Find or create reminder in store
-    let activeRem = store.reminders.find(rem => rem.routineId === triggeredRoutine.id && rem.scheduledDate === todayStr);
-    if (!activeRem) {
-      activeRem = {
-        id: `rem_${triggeredRoutine.id}`,
-        userId: triggeredRoutine.userId,
-        routineId: triggeredRoutine.id,
-        scheduledTime: triggeredRoutine.timeSlot,
-        scheduledDate: todayStr,
-        compartment: triggeredRoutine.compartment || 1,
-        status: 'Upcoming',
-        actualTime: null,
-        confirmedBy: null,
-        notes: triggeredRoutine.notes
-      };
-      store.reminders.push(activeRem);
+  if (triggeredRoutines.length > 0) {
+    // Collect active compartments
+    const activeCompartments = [...new Set(triggeredRoutines.map(r => Number(r.compartment) || 1))];
+    const led1 = activeCompartments.includes(1);
+    const led2 = activeCompartments.includes(2);
+    const led3 = activeCompartments.includes(3);
+
+    const reminderIds = [];
+    const routineIds = [];
+
+    triggeredRoutines.forEach(r => {
+      routineIds.push(r.id);
+      let activeRem = store.reminders.find(rem => rem.routineId === r.id && rem.scheduledDate === todayStr);
+      if (!activeRem) {
+        activeRem = {
+          id: `rem_${r.id}`,
+          userId: r.userId,
+          routineId: r.id,
+          scheduledTime: r.timeSlot,
+          scheduledDate: todayStr,
+          compartment: r.compartment || 1,
+          status: 'Upcoming',
+          actualTime: null,
+          confirmedBy: null,
+          notes: r.notes
+        };
+        store.reminders.push(activeRem);
+      }
+      reminderIds.push(activeRem.id);
+    });
+
+    // Formulate LCD Display Lines
+    let lcdLine1 = '';
+    let lcdLine2 = '';
+
+    if (triggeredRoutines.length === 1) {
+      const r = triggeredRoutines[0];
+      lcdLine1 = (r.name || 'Routine Item').substring(0, 16);
+      lcdLine2 = `Slot #${r.compartment || 1} ${r.timeSlot}`.substring(0, 16);
+    } else if (triggeredRoutines.length === 2) {
+      lcdLine1 = `Box #${triggeredRoutines[0].compartment} & #${triggeredRoutines[1].compartment} Take!`;
+      lcdLine2 = `${triggeredRoutines[0].timeSlot} 2 Items!`;
+    } else {
+      lcdLine1 = `Box ${activeCompartments.map(c => '#' + c).join(', ')}`;
+      lcdLine2 = `Take All Items!`;
     }
 
-    // Return active = true so buzzer sounds and LED lights up!
+    // Return active = true so buzzer sounds and assigned LEDs light up!
     return res.json({
       active: true,
-      reminderId: activeRem.id,
-      routineId: triggeredRoutine.id,
-      routineName: triggeredRoutine.name || 'Routine Item',
-      itemType: triggeredRoutine.itemType || 'medicine',
-      time: triggeredRoutine.timeSlot,
-      foodRelation: triggeredRoutine.foodRelation || '',
-      compartment: triggeredRoutine.compartment || 1,
+      count: triggeredRoutines.length,
+      reminderId: reminderIds[0],
+      reminderIds,
+      routineId: routineIds[0],
+      routineIds,
+      routineName: triggeredRoutines.map(r => r.name).join(' & ').substring(0, 32),
+      itemType: triggeredRoutines[0].itemType || 'medicine',
+      time: triggeredRoutines[0].timeSlot,
+      foodRelation: triggeredRoutines[0].foodRelation || '',
+      compartment: activeCompartments[0],
+      activeCompartments,
+      led1,
+      led2,
+      led3,
       buzzer: true,
       led: true,
-      lcdLine1: (triggeredRoutine.name || 'Routine Alert').substring(0, 16),
-      lcdLine2: `${triggeredRoutine.timeSlot} ${triggeredRoutine.foodRelation || 'Take Now!'}`.substring(0, 16)
+      lcdLine1: lcdLine1.substring(0, 16),
+      lcdLine2: lcdLine2.substring(0, 16),
+      timeComponents
     });
   }
 
@@ -738,54 +788,74 @@ router.get('/esp8266/check', async (req, res) => {
     currentTime,
     buzzer: false,
     led: false,
+    led1: false,
+    led2: false,
+    led3: false,
+    activeCompartments: [],
     lcdLine1: 'Smart Routine',
-    lcdLine2: nextRtn ? `${nextRtn.timeSlot} ${nextRtn.name}`.substring(0, 16) : `Time: ${currentTime}`
+    lcdLine2: nextRtn ? `${nextRtn.timeSlot} Box#${nextRtn.compartment}`.substring(0, 16) : `Time: ${currentTime}`,
+    timeComponents
   });
 });
 
 // 2. ESP8266 Push Button Confirmation: POST /api/esp8266/confirm
 router.post('/esp8266/confirm', (req, res) => {
-  const { deviceId, reminderId, routineId, compartment } = req.body;
+  const { deviceId, reminderId, routineId, reminderIds, compartment } = req.body;
   const now = new Date();
   const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  const todayStr = now.toISOString().split('T')[0];
 
-  let targetReminder = null;
-  if (reminderId) {
-    targetReminder = store.reminders.find(r => r.id === reminderId || r.routineId === reminderId);
+  let targetReminders = [];
+
+  if (Array.isArray(reminderIds) && reminderIds.length > 0) {
+    targetReminders = store.reminders.filter(r => reminderIds.includes(r.id) || reminderIds.includes(r.routineId));
+  } else if (reminderId && typeof reminderId === 'string' && reminderId.includes(',')) {
+    const list = reminderId.split(',');
+    targetReminders = store.reminders.filter(r => list.includes(r.id) || list.includes(r.routineId));
+  } else if (reminderId) {
+    const rem = store.reminders.find(r => r.id === reminderId || r.routineId === reminderId);
+    if (rem) targetReminders.push(rem);
   } else if (routineId) {
-    targetReminder = store.reminders.find(r => r.routineId === routineId);
+    const rem = store.reminders.find(r => r.routineId === routineId);
+    if (rem) targetReminders.push(rem);
   } else if (compartment) {
-    targetReminder = store.reminders.find(r => r.compartment === Number(compartment) && r.status !== 'Completed');
-  } else {
-    // Find first active or upcoming reminder
-    targetReminder = store.reminders.find(r => r.status === 'Reminder Active') || store.reminders.find(r => r.status === 'Upcoming');
+    const rem = store.reminders.find(r => r.compartment === Number(compartment) && r.status !== 'Completed');
+    if (rem) targetReminders.push(rem);
   }
 
-  if (targetReminder) {
-    targetReminder.status = 'Completed';
-    targetReminder.actualTime = timeStr;
-    targetReminder.confirmedBy = 'esp8266_button';
-    targetReminder.notes = 'Confirmed via ESP8266 push button';
+  // If no specific match, acknowledge all upcoming/active reminders for today
+  if (targetReminders.length === 0) {
+    targetReminders = store.reminders.filter(r => r.status === 'Reminder Active' || r.status === 'Upcoming');
+  }
 
-    // Log to MySQL device_logs if connected
-    if (isMySQLConnected()) {
-      query('INSERT INTO device_logs (device_id, action, details) VALUES (?, ?, ?)', [
-        deviceId || 'ESP8266-SR-01',
-        'BUTTON_CONFIRM',
-        `Reminder ${targetReminder.id} confirmed at ${timeStr}`
-      ]).catch(() => { });
-    }
+  if (targetReminders.length > 0) {
+    targetReminders.forEach(targetReminder => {
+      targetReminder.status = 'Completed';
+      targetReminder.actualTime = timeStr;
+      targetReminder.confirmedBy = 'esp8266_button';
+      targetReminder.notes = 'Confirmed via ESP8266 push button (D6)';
 
-    broadcastEvent(req, 'DATA_UPDATED', {
-      type: 'ESP8266_CONFIRMED',
-      reminder: targetReminder,
-      deviceId: deviceId || 'ESP8266-SR-01'
+      // Log to MySQL device_logs if connected
+      if (isMySQLConnected()) {
+        query('INSERT INTO device_logs (device_id, action, details) VALUES (?, ?, ?)', [
+          deviceId || 'ESP8266-SR-01',
+          'BUTTON_CONFIRM',
+          `Reminder ${targetReminder.id} confirmed at ${timeStr}`
+        ]).catch(() => { });
+      }
+
+      broadcastEvent(req, 'DATA_UPDATED', {
+        type: 'ESP8266_CONFIRMED',
+        reminder: targetReminder,
+        deviceId: deviceId || 'ESP8266-SR-01'
+      });
     });
 
     return res.json({
       success: true,
-      message: 'Dose / Routine confirmed successfully via ESP8266 push button!',
-      confirmedReminderId: targetReminder.id,
+      message: `Confirmed ${targetReminders.length} routine item(s) via ESP8266 push button!`,
+      confirmedCount: targetReminders.length,
+      confirmedIds: targetReminders.map(r => r.id),
       time: timeStr
     });
   }
