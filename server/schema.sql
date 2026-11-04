@@ -70,24 +70,15 @@ DELETE FROM users;
 -- Seed Default Profiles
 INSERT INTO users (id, name, email, role, profile_type, phone, device_id)
 VALUES 
-('usr_gym_1', 'Rohan (Fitness & Gym)', 'rohan.gym@smartroutine.com', 'user', 'fitness', '+91 98765 11111', 'ESP8266-SR-01'),
-('usr_patient_1', 'Rahul Sharma (Patient)', 'rahul.sharma@smartroutine.com', 'user', 'patient', '+91 98765 22222', 'ESP8266-SR-01'),
-('usr_general_1', 'Aditya (Daily Routine)', 'aditya@smartroutine.com', 'user', 'general', '+91 98765 33333', 'ESP8266-SR-01');
+('usr_mayur_1', 'Mayur (Daily Routine)', 'mayur@smartroutine.com', 'user', 'general', '+91 98765 43210', 'ESP8266-SR-01');
 
 -- Seed Sample Routines
 INSERT INTO routines (id, user_id, item_type, name, time_slot, category, dosage, meal_type, food_relation, compartment, notes)
 VALUES
-('rtn_gym_1', 'usr_gym_1', 'meal', 'Breakfast: Oatmeal & 3 Boiled Eggs', '08:00', 'Breakfast', '50g Oats + 3 Eggs', 'Breakfast', 'None', 1, 'High protein morning power breakfast'),
-('rtn_gym_2', 'usr_gym_1', 'medicine', 'Daily Multivitamin & Fish Oil Softgel', '08:30', 'Vitamins & Supplements', '1 Capsule + 1 Softgel', 'Breakfast', 'After Meal', 1, 'Take with water after breakfast'),
-('rtn_gym_3', 'usr_gym_1', 'meal', 'Lunch: Grilled Chicken / Paneer, Rice & Salad', '13:00', 'Lunch', 'Full Meal (2 Chapatis + 150g Protein)', 'Lunch', 'None', 2, 'Balanced nutritious midday meal'),
-('rtn_gym_4', 'usr_gym_1', 'workout', 'Pre-Workout Snack: Banana & Black Coffee', '17:00', 'Gym & Fitness', '1 Banana + 1 Cup Black Coffee', 'Pre-Workout', 'Before Meal', 2, '30 minutes before workout session'),
-('rtn_gym_5', 'usr_gym_1', 'workout', 'Post-Workout: Whey Protein Shake + 5g Creatine', '19:00', 'Gym & Fitness', '1 Scoop Whey (24g Protein) + 5g Creatine', 'Post-Workout', 'After Meal', 3, 'Mix with 250ml water immediately post-workout'),
-('rtn_gym_6', 'usr_gym_1', 'meal', 'Dinner: Whole Wheat Roti, Dal & Steamed Veggies', '20:30', 'Dinner', '2 Roti + Lentil Soup + Salad', 'Dinner', 'None', 4, 'Light and healthy evening meal'),
-
-('rtn_med_1', 'usr_patient_1', 'meal', 'Breakfast: Oatmeal Porridge & Warm Milk', '08:00', 'Breakfast', '1 Bowl Porridge + 1 Cup Milk', 'Breakfast', 'None', 1, 'Timely breakfast before morning medicines'),
-('rtn_med_2', 'usr_patient_1', 'medicine', 'Metformin HCl 500mg (Diabetes Tablet)', '08:30', 'Diabetes Care', '1 Tablet (500mg)', 'Breakfast', 'After Meal', 1, 'Take strictly after breakfast with water'),
-('rtn_med_3', 'usr_patient_1', 'meal', 'Lunch: 2 Chapatis, Green Veggies & Dal-Rice', '13:00', 'Lunch', '2 Chapatis + Veggies + Dal', 'Lunch', 'None', 2, 'Midday wholesome meal'),
-('rtn_med_4', 'usr_patient_1', 'medicine', 'Multivitamin & Calcium Capsule', '13:30', 'Vitamins & Minerals', '1 Capsule', 'Lunch', 'After Meal', 3, 'Take after lunch with water'),
-('rtn_med_5', 'usr_patient_1', 'medicine', 'BP Tablet (Telmisartan 40mg)', '20:00', 'Blood Pressure Care', '1 Tablet (40mg)', 'Dinner', 'Before Meal', 2, 'Take 30 minutes before evening dinner'),
-('rtn_med_6', 'usr_patient_1', 'meal', 'Dinner: Light Moong Dal Khichdi & Curd', '20:30', 'Dinner', '1 Bowl Khichdi + Fresh Curd', 'Dinner', 'None', 4, 'Light evening dinner'),
-('rtn_med_7', 'usr_patient_1', 'medicine', 'Atorvastatin 10mg (Bedtime Cholesterol Pill)', '21:30', 'Cardiovascular Care', '1 Tablet (10mg)', 'Dinner', 'After Meal', 4, 'Take before bedtime after dinner');
+('rtn_mayur_1', 'usr_mayur_1', 'meal', 'Breakfast & Morning Routine', '08:00', 'Breakfast', 'Wholesome Breakfast', 'Breakfast', 'None', 1, 'Timely breakfast before morning medicines'),
+('rtn_mayur_2', 'usr_mayur_1', 'medicine', 'Morning Medicine / Vitamin', '08:30', 'Vitamins & Supplements', '1 Tablet', 'Breakfast', 'After Meal', 1, 'Take with water after breakfast'),
+('rtn_mayur_3', 'usr_mayur_1', 'meal', 'Lunch: 2 Chapatis & Vegetables', '13:00', 'Lunch', 'Full Midday Meal', 'Lunch', 'None', 2, 'Nutritious lunch'),
+('rtn_mayur_4', 'usr_mayur_1', 'medicine', 'Multivitamin Capsule', '13:30', 'Vitamins & Minerals', '1 Capsule', 'Lunch', 'After Meal', 2, 'Take after lunch with water'),
+('rtn_mayur_5', 'usr_mayur_1', 'medicine', 'Evening Care Pill', '20:00', 'Daily Health', '1 Tablet', 'Dinner', 'Before Meal', 3, 'Take 30 minutes before dinner'),
+('rtn_mayur_6', 'usr_mayur_1', 'meal', 'Dinner & Light Food', '20:30', 'Dinner', 'Light Dinner', 'Dinner', 'None', 3, 'Light evening meal'),
+('rtn_mayur_7', 'usr_mayur_1', 'medicine', 'Bedtime Health Supplement', '21:30', 'Night Care', '1 Tablet', 'Dinner', 'After Meal', 3, 'Take before bedtime with water');

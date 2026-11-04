@@ -17,11 +17,11 @@ import {
 export default function AuthPage({ onLoginSuccess }) {
   const { login, switchProfile } = useAuth();
   const [isRegister, setIsRegister] = useState(false);
-  const [selectedProfile, setSelectedProfile] = useState('patient');
-  const [email, setEmail] = useState('rahul.sharma@smartroutine.com');
+  const [selectedProfile, setSelectedProfile] = useState('general');
+  const [email, setEmail] = useState('mayur@smartroutine.com');
   const [password, setPassword] = useState('password123');
-  const [name, setName] = useState('Rahul Sharma');
-  const [phone, setPhone] = useState('+91 98765 22222');
+  const [name, setName] = useState('Mayur');
+  const [phone, setPhone] = useState('+91 98765 43210');
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -52,42 +52,33 @@ export default function AuthPage({ onLoginSuccess }) {
       <div className="mt-7 sm:mx-auto sm:w-full sm:max-w-md px-4">
         <div className="bg-white py-8 px-6 shadow-xl rounded-3xl sm:px-10 border border-slate-200">
 
-          {/* Quick 1-Click Profile Selection */}
+          {/* Single 1-Click Login for Mayur */}
           <div className="mb-6">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2.5 text-center">
-              Quick 1-Click Profile Demo
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => handleQuickDemo('gym')}
-                className="p-2.5 rounded-xl border border-amber-200 bg-amber-50/70 hover:bg-amber-100/80 text-amber-900 text-center transition-all cursor-pointer flex flex-col items-center"
-              >
-                <Dumbbell className="w-4 h-4 text-amber-600 mb-1" />
-                <div className="font-bold text-[11px]">Gym & Fitness</div>
-                <div className="text-[10px] text-amber-700 truncate">Rohan (Diet)</div>
-              </button>
+            <button
+              type="button"
+              onClick={() => handleQuickDemo('general')}
+              className="w-full p-4 rounded-2xl border-2 border-teal-500 bg-teal-50 hover:bg-teal-100 text-teal-950 transition-all cursor-pointer flex items-center justify-between shadow-sm group"
+            >
+              <div className="flex items-center space-x-3.5">
+                <img
+                  src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150"
+                  alt="Mayur"
+                  className="w-11 h-11 rounded-xl object-cover border border-teal-300"
+                />
+                <div className="text-left">
+                  <div className="font-extrabold text-sm text-slate-900 flex items-center space-x-1.5">
+                    <span>Mayur</span>
+                    <span className="text-[10px] font-bold bg-teal-600 text-white px-1.5 py-0.5 rounded">Active</span>
+                  </div>
+                  <div className="text-xs text-teal-700 font-medium mt-0.5">🏃 Daily Routine & Lifestyle</div>
+                </div>
+              </div>
 
-              <button
-                type="button"
-                onClick={() => handleQuickDemo('patient')}
-                className="p-2.5 rounded-xl border border-teal-200 bg-teal-50/70 hover:bg-teal-100/80 text-teal-900 text-center transition-all cursor-pointer flex flex-col items-center"
-              >
-                <Pill className="w-4 h-4 text-teal-600 mb-1" />
-                <div className="font-bold text-[11px]">Patient Care</div>
-                <div className="text-[10px] text-teal-700 truncate">Rahul (Meds)</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickDemo('general')}
-                className="p-2.5 rounded-xl border border-blue-200 bg-blue-50/70 hover:bg-blue-100/80 text-blue-900 text-center transition-all cursor-pointer flex flex-col items-center"
-              >
-                <Coffee className="w-4 h-4 text-blue-600 mb-1" />
-                <div className="font-bold text-[11px]">Daily Routine</div>
-                <div className="text-[10px] text-blue-700 truncate">Aditya (Habits)</div>
-              </button>
-            </div>
+              <div className="flex items-center space-x-1 text-xs font-bold text-teal-700 group-hover:translate-x-1 transition-transform">
+                <span>Enter Dashboard</span>
+                <ArrowRight className="w-4 h-4" />
+              </div>
+            </button>
           </div>
 
           <div className="relative mb-6">

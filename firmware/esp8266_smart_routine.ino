@@ -110,13 +110,19 @@ void allLedsOff() {
   digitalWrite(PIN_LED_3, LOW);
 }
 
-// ---------------- LCD Display Helper ----------------
+// ---------------- LCD Display Helpers ----------------
 void updateLCD(String line1, String line2) {
+  lcd.backlight();
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print(line1.substring(0, 16));
   lcd.setCursor(0, 1);
   lcd.print(line2.substring(0, 16));
+}
+
+void turnLcdOff() {
+  lcd.clear();
+  lcd.noBacklight();
 }
 
 // ---------------- Sound Initial Alert Chimes ----------------
@@ -224,8 +230,8 @@ void checkRoutineStatus() {
           activeReminderIds = "";
           buzzerOff();
           allLedsOff();
+          turnLcdOff();
         }
-        updateLCD(line1, line2);
       }
     }
   } else {
@@ -261,7 +267,7 @@ void sendButtonConfirmation() {
 
   if (httpCode == HTTP_CODE_OK) {
     Serial.println("✅ [SUCCESS] Routine confirmed on server!");
-    updateLCD("All Done! OK", "Great Job!");
+    updateLCD("Routine Done!", "Great Job Mayur!");
     
     // Stop ongoing alert alarm
     isAlertActive = false;
@@ -283,9 +289,15 @@ void sendButtonConfirmation() {
       allLedsOff();
       delay(80);
     }
+
+    delay(1500); // 1.5 सेकंद संदेश दाखवून लगेच LCD OFF करणे
+    turnLcdOff(); // LCD पुन्हा पूर्णपणे OFF (Dark mode)
+    Serial.println("💤 Button acknowledged. LCD backlight is now OFF.");
   } else {
     Serial.printf("❌ [ERROR] POST failed, code: %d\n", httpCode);
     updateLCD("Server Error", "Try Again");
+    delay(1500);
+    turnLcdOff();
   }
   http.end();
 }
@@ -398,7 +410,9 @@ void setup() {
     delay(1500);
   }
 
-  updateLCD("Smart Routine", "Ready & Synced");
+  // Standby Sleep: Routine चा टाईम येईपर्यंत LCD पूर्णपणे बंद (Dark) ठेवणे
+  turnLcdOff();
+  Serial.println("💤 [STANDBY] LCD is now OFF. Will automatically turn ON only when routine time arrives!");
 }
 
 // ---------------- MAIN LOOP ----------------
@@ -435,23 +449,17 @@ void loop() {
         allLedsOff();
       }
     }
-  } else {
-    // 3. When Idle: Update real-time clock from RTC on LCD every second!
-    if (rtcDetected && millis() - lastClockDisplayTime > 1000) {
-      lastClockDisplayTime = millis();
-      DateTime now = rtc.now();
-      char timeBuffer[17];
-      snprintf(timeBuffer, sizeof(timeBuffer), "%02d:%02d:%02d Ready", now.hour(), now.minute(), now.second());
-      lcd.setCursor(0, 1);
-      lcd.print(timeBuffer);
-    }
   }
 
-  // 4. Periodic Poll from Server (every 3 seconds)
+  // 3. Periodic Poll from Server (every 3 seconds)
+  // जेव्हा Routine चा time match होईल, तेव्हा checkRoutineStatus() आपोआप LCD आणि LED चालू करेल.
   if (millis() - lastPollTime > POLL_INTERVAL_MS) {
     lastPollTime = millis();
     checkRoutineStatus();
   }
+
+  yield();
+}
 
   yield();
 }

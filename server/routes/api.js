@@ -72,7 +72,7 @@ router.post('/auth/register', async (req, res) => {
 });
 
 router.get('/auth/me', (req, res) => {
-  const userId = req.headers['x-user-id'] || 'usr_patient_1';
+  const userId = req.headers['x-user-id'] || 'usr_mayur_1';
   const user = store.users.find(u => u.id === userId) || store.users[0];
   return res.json({ success: true, user });
 });
@@ -86,7 +86,7 @@ router.post('/auth/switch-profile', (req, res) => {
 
 // ---------------- DASHBOARD SUMMARY ----------------
 router.get('/dashboard/summary', async (req, res) => {
-  const userId = req.headers['x-user-id'] || 'usr_patient_1';
+  const userId = req.headers['x-user-id'] || 'usr_mayur_1';
   const user = store.users.find(u => u.id === userId) || store.users[0];
 
   let userRoutines = store.routines.filter(r => r.userId === user.id);
@@ -161,7 +161,7 @@ router.get('/dashboard/summary', async (req, res) => {
 
 // ---------------- ROUTINES (MEDICINE, MEAL, GYM/SUPPLEMENT, OTHER) ----------------
 router.get('/routines', async (req, res) => {
-  const userId = req.headers['x-user-id'] || 'usr_patient_1';
+  const userId = req.headers['x-user-id'] || 'usr_mayur_1';
   let list = store.routines.filter(r => r.userId === userId);
 
   if (isMySQLConnected()) {
@@ -200,7 +200,7 @@ function formatTimeSlot(timeStr) {
 }
 
 router.post('/routines', async (req, res) => {
-  const userId = req.headers['x-user-id'] || 'usr_patient_1';
+  const userId = req.headers['x-user-id'] || 'usr_mayur_1';
   const newId = `rtn_${Date.now()}`;
   const timeSlot = formatTimeSlot(req.body.timeSlot);
 
@@ -339,7 +339,7 @@ router.delete('/routines/:id', async (req, res) => {
 
 // ---------------- MEDICINES (COMPATIBILITY ADAPTER) ----------------
 router.get('/medicines', (req, res) => {
-  const userId = req.headers['x-user-id'] || 'usr_patient_1';
+  const userId = req.headers['x-user-id'] || 'usr_mayur_1';
   // Map routines of type medicine or workout supplement to medicine objects
   const list = store.routines
     .filter(r => r.userId === userId && (r.itemType === 'medicine' || r.itemType === 'workout'))
@@ -361,7 +361,7 @@ router.get('/medicines', (req, res) => {
 });
 
 router.post('/medicines', async (req, res) => {
-  const userId = req.headers['x-user-id'] || 'usr_patient_1';
+  const userId = req.headers['x-user-id'] || 'usr_mayur_1';
   const newId = `rtn_${Date.now()}`;
   const rawTime = req.body.timeSlot || (Array.isArray(req.body.timingSlots) ? req.body.timingSlots[0] : req.body.timingSlots) || '09:00';
   const timeSlot = formatTimeSlot(rawTime);
@@ -448,7 +448,7 @@ router.put('/medicines/:id', async (req, res) => {
   } else {
     store.routines.push({
       id: routineId,
-      userId: req.headers['x-user-id'] || 'usr_patient_1',
+      userId: req.headers['x-user-id'] || 'usr_mayur_1',
       itemType: req.body.itemType || 'medicine',
       ...updatedData,
       isActive: true
@@ -479,7 +479,7 @@ router.put('/medicines/:id', async (req, res) => {
   } else {
     store.reminders.push({
       id: `rem_${Date.now()}`,
-      userId: req.headers['x-user-id'] || 'usr_patient_1',
+      userId: req.headers['x-user-id'] || 'usr_mayur_1',
       routineId,
       scheduledTime: updatedData.timeSlot,
       scheduledDate: new Date().toISOString().split('T')[0],
@@ -516,7 +516,7 @@ router.delete('/medicines/:id', async (req, res) => {
 
 // ---------------- TODAY'S REMINDERS ----------------
 router.get('/reminders/today', (req, res) => {
-  const userId = req.headers['x-user-id'] || 'usr_patient_1';
+  const userId = req.headers['x-user-id'] || 'usr_mayur_1';
 
   // Sync reminders with routines if empty
   const userRoutines = store.routines.filter(r => r.userId === userId);
@@ -903,7 +903,7 @@ router.post('/devices/:id/sync', (req, res) => {
 // ---------------- AI ASSISTANT (GEMINI ROUTINE HELPER) ----------------
 router.post('/chat', async (req, res) => {
   const { message, history } = req.body;
-  const userId = req.headers['x-user-id'] || 'usr_patient_1';
+  const userId = req.headers['x-user-id'] || 'usr_mayur_1';
   const user = store.users.find(u => u.id === userId) || store.users[0];
   const userRoutines = store.routines.filter(r => r.userId === user.id);
 

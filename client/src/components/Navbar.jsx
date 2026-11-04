@@ -122,85 +122,21 @@ export default function Navbar({ onOpenSimulator, onOpenChat }) {
               <span className="hidden sm:inline">AI Helper</span>
             </button>
 
-            {/* Profile Dropdown Switcher (Gym / Patient / General) */}
-            <div className="relative">
-              <button
-                onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="flex items-center space-x-2 pl-2 pr-2.5 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer"
-              >
-                <img
-                  src={currentUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'}
-                  alt={currentUser?.name}
-                  className="w-7 h-7 rounded-lg object-cover border border-slate-200"
-                />
-                <div className="text-left hidden sm:block">
-                  <div className="text-xs font-bold text-slate-800 leading-tight">
-                    {currentUser?.name?.split(' ')[0] || 'User'}
-                  </div>
-                  <div className="text-[10px] text-teal-600 font-semibold leading-tight">
-                    {currentUser?.profileType === 'fitness' ? 'Gym & Fitness' :
-                     currentUser?.profileType === 'patient' ? 'Patient Care' : 'Daily Life'}
-                  </div>
+            {/* User Profile Badge (Mayur - Daily Routine) */}
+            <div className="flex items-center space-x-2 pl-2 pr-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50/70">
+              <img
+                src={currentUser?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150'}
+                alt={currentUser?.name || 'Mayur'}
+                className="w-7 h-7 rounded-lg object-cover border border-slate-200"
+              />
+              <div className="text-left hidden sm:block">
+                <div className="text-xs font-bold text-slate-800 leading-tight">
+                  {currentUser?.name || 'Mayur'}
                 </div>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-              </button>
-
-              {/* Profile Menu */}
-              {showProfileMenu && (
-                <div className="absolute right-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-                  <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                    Switch Profile
-                  </div>
-
-                  <button
-                    onClick={() => { switchProfile('gym'); setShowProfileMenu(false); }}
-                    className={`w-full flex items-center justify-between p-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
-                      currentUser?.profileType === 'fitness' ? 'bg-amber-50 text-amber-900 font-bold' : 'hover:bg-slate-50 text-slate-700'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <Dumbbell className="w-4 h-4 text-amber-600" />
-                      <div className="text-left">
-                        <div className="font-bold">Rohan (Gym & Fitness)</div>
-                        <div className="text-[10px] text-slate-500 font-normal">Diet & Supplements</div>
-                      </div>
-                    </div>
-                    {currentUser?.profileType === 'fitness' && <Check className="w-4 h-4 text-amber-600" />}
-                  </button>
-
-                  <button
-                    onClick={() => { switchProfile('patient'); setShowProfileMenu(false); }}
-                    className={`w-full flex items-center justify-between p-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
-                      currentUser?.profileType === 'patient' ? 'bg-teal-50 text-teal-900 font-bold' : 'hover:bg-slate-50 text-slate-700'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <Pill className="w-4 h-4 text-teal-600" />
-                      <div className="text-left">
-                        <div className="font-bold">Rahul (Patient Care)</div>
-                        <div className="text-[10px] text-slate-500 font-normal">Medicines & Care</div>
-                      </div>
-                    </div>
-                    {currentUser?.profileType === 'patient' && <Check className="w-4 h-4 text-teal-600" />}
-                  </button>
-
-                  <button
-                    onClick={() => { switchProfile('general'); setShowProfileMenu(false); }}
-                    className={`w-full flex items-center justify-between p-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
-                      currentUser?.profileType === 'general' ? 'bg-blue-50 text-blue-900 font-bold' : 'hover:bg-slate-50 text-slate-700'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <Coffee className="w-4 h-4 text-blue-600" />
-                      <div className="text-left">
-                        <div className="font-bold">Aditya (Daily Life)</div>
-                        <div className="text-[10px] text-slate-500 font-normal">Meals & Habits</div>
-                      </div>
-                    </div>
-                    {currentUser?.profileType === 'general' && <Check className="w-4 h-4 text-blue-600" />}
-                  </button>
+                <div className="text-[10px] text-teal-600 font-semibold leading-tight">
+                  Daily Routine
                 </div>
-              )}
+              </div>
             </div>
 
           </div>

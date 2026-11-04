@@ -355,9 +355,9 @@ export default function MedicineModal({ isOpen, onClose, onSave, initialData }) 
 
             {/* Smart Dispenser Box / Slot Allocation */}
             <div className="flex items-center justify-between pt-1 text-xs">
-              <span className="text-slate-600 font-medium">Smart Dispenser Slot (Optional)</span>
+              <span className="text-slate-600 font-medium">Smart Dispenser Slot (LED 1, 2, 3)</span>
               <div className="flex space-x-1.5">
-                {[1, 2, 3, 4].map((slot) => (
+                {[1, 2, 3].map((slot) => (
                   <button
                     key={slot}
                     type="button"

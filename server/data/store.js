@@ -4,43 +4,16 @@ const { v4: uuidv4 } = require('uuid');
 const store = {
   users: [
     {
-      id: 'usr_gym_1',
-      name: 'Rohan Deshmukh (Gym & Fitness)',
-      email: 'rohan.gym@smartroutine.com',
-      role: 'user',
-      profileType: 'fitness',
-      deviceId: 'ESP8266-SR-01',
-      age: 24,
-      goal: 'Muscle Building & High Protein Diet',
-      phone: '+91 98765 11111',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-      createdAt: '2026-01-10T08:00:00.000Z'
-    },
-    {
-      id: 'usr_patient_1',
-      name: 'Rahul Sharma (Patient Care)',
-      email: 'rahul.sharma@smartroutine.com',
-      role: 'user',
-      profileType: 'patient',
-      deviceId: 'ESP8266-SR-01',
-      age: 52,
-      goal: 'Diabetes & BP Medicine Management',
-      phone: '+91 98765 22222',
-      emergencyContact: '+91 98765 22223 (Pooja Sharma)',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-      createdAt: '2026-01-15T09:30:00.000Z'
-    },
-    {
-      id: 'usr_general_1',
-      name: 'Aditya Patil (Daily Routine)',
-      email: 'aditya.patil@smartroutine.com',
+      id: 'usr_mayur_1',
+      name: 'Mayur',
+      email: 'mayur@smartroutine.com',
       role: 'user',
       profileType: 'general',
       deviceId: 'ESP8266-SR-01',
-      age: 28,
-      goal: 'Work-Life Balance, Meals & Water Intake',
-      phone: '+91 98765 33333',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
+      age: 24,
+      goal: 'Daily Schedules, Medicines, Meals & Habits',
+      phone: '+91 98765 43210',
+      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
       createdAt: '2026-02-01T08:00:00.000Z'
     }
   ],
@@ -50,7 +23,7 @@ const store = {
     // Gym Routines
     {
       id: 'rtn_gym_1',
-      userId: 'usr_gym_1',
+      userId: 'usr_mayur_1',
       itemType: 'meal',
       name: 'Breakfast: Oatmeal & 3 Boiled Eggs',
       timeSlot: '08:00',
@@ -65,7 +38,7 @@ const store = {
     },
     {
       id: 'rtn_gym_2',
-      userId: 'usr_gym_1',
+      userId: 'usr_mayur_1',
       itemType: 'medicine',
       name: 'Daily Multivitamin & Fish Oil Softgel',
       timeSlot: '08:30',
@@ -80,7 +53,7 @@ const store = {
     },
     {
       id: 'rtn_gym_3',
-      userId: 'usr_gym_1',
+      userId: 'usr_mayur_1',
       itemType: 'meal',
       name: 'Lunch: Grilled Chicken / Paneer, Rice & Salad',
       timeSlot: '13:00',
@@ -95,7 +68,7 @@ const store = {
     },
     {
       id: 'rtn_gym_4',
-      userId: 'usr_gym_1',
+      userId: 'usr_mayur_1',
       itemType: 'workout',
       name: 'Pre-Workout Snack: Banana & Black Coffee',
       timeSlot: '17:00',
@@ -110,7 +83,7 @@ const store = {
     },
     {
       id: 'rtn_gym_5',
-      userId: 'usr_gym_1',
+      userId: 'usr_mayur_1',
       itemType: 'workout',
       name: 'Post-Workout: Whey Protein Shake + 5g Creatine',
       timeSlot: '19:00',
@@ -125,7 +98,7 @@ const store = {
     },
     {
       id: 'rtn_gym_6',
-      userId: 'usr_gym_1',
+      userId: 'usr_mayur_1',
       itemType: 'meal',
       name: 'Dinner: Whole Wheat Roti, Dal & Steamed Veggies',
       timeSlot: '20:30',
@@ -133,7 +106,7 @@ const store = {
       dosage: '2 Roti + Lentil Soup + Salad',
       mealType: 'Dinner',
       foodRelation: 'None',
-      compartment: 4,
+      compartment: 3,
       notes: 'Light and easily digestible evening meal',
       activeDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
       isActive: true
@@ -142,7 +115,7 @@ const store = {
     // Patient Routines
     {
       id: 'rtn_pat_1',
-      userId: 'usr_patient_1',
+      userId: 'usr_mayur_1',
       itemType: 'meal',
       name: 'Breakfast: Oatmeal Porridge & Warm Milk',
       timeSlot: '08:00',
@@ -157,7 +130,7 @@ const store = {
     },
     {
       id: 'rtn_pat_2',
-      userId: 'usr_patient_1',
+      userId: 'usr_mayur_1',
       itemType: 'medicine',
       name: 'Metformin HCl 500mg (Diabetes Tablet)',
       timeSlot: '08:30',
@@ -172,7 +145,7 @@ const store = {
     },
     {
       id: 'rtn_pat_3',
-      userId: 'usr_patient_1',
+      userId: 'usr_mayur_1',
       itemType: 'meal',
       name: 'Lunch: 2 Chapatis, Green Veggies & Dal-Rice',
       timeSlot: '13:00',
@@ -187,7 +160,7 @@ const store = {
     },
     {
       id: 'rtn_pat_4',
-      userId: 'usr_patient_1',
+      userId: 'usr_mayur_1',
       itemType: 'medicine',
       name: 'Multivitamin & Calcium Capsule',
       timeSlot: '13:30',
@@ -202,7 +175,7 @@ const store = {
     },
     {
       id: 'rtn_pat_5',
-      userId: 'usr_patient_1',
+      userId: 'usr_mayur_1',
       itemType: 'medicine',
       name: 'BP Capsule (Telmisartan 40mg)',
       timeSlot: '20:00',
@@ -217,7 +190,7 @@ const store = {
     },
     {
       id: 'rtn_pat_6',
-      userId: 'usr_patient_1',
+      userId: 'usr_mayur_1',
       itemType: 'meal',
       name: 'Dinner: Light Moong Dal Khichdi & Curd',
       timeSlot: '20:30',
@@ -225,14 +198,14 @@ const store = {
       dosage: '1 Bowl Khichdi + Fresh Curd',
       mealType: 'Dinner',
       foodRelation: 'None',
-      compartment: 4,
+      compartment: 3,
       notes: 'Light evening dinner for easy digestion',
       activeDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
       isActive: true
     },
     {
       id: 'rtn_pat_7',
-      userId: 'usr_patient_1',
+      userId: 'usr_mayur_1',
       itemType: 'medicine',
       name: 'Atorvastatin 10mg (Cholesterol Tablet)',
       timeSlot: '21:30',
@@ -240,7 +213,7 @@ const store = {
       dosage: '1 Tablet (10mg)',
       mealType: 'Dinner',
       foodRelation: 'After Meal',
-      compartment: 4,
+      compartment: 3,
       notes: 'Take at bedtime after dinner',
       activeDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
       isActive: true
@@ -252,7 +225,7 @@ const store = {
   reminders: [
     {
       id: 'rem_1',
-      userId: 'usr_patient_1',
+      userId: 'usr_mayur_1',
       routineId: 'rtn_pat_1',
       scheduledTime: '08:00',
       scheduledDate: new Date().toISOString().split('T')[0],
@@ -264,7 +237,7 @@ const store = {
     },
     {
       id: 'rem_2',
-      userId: 'usr_patient_1',
+      userId: 'usr_mayur_1',
       routineId: 'rtn_pat_2',
       scheduledTime: '08:30',
       scheduledDate: new Date().toISOString().split('T')[0],
@@ -276,7 +249,7 @@ const store = {
     },
     {
       id: 'rem_3',
-      userId: 'usr_patient_1',
+      userId: 'usr_mayur_1',
       routineId: 'rtn_pat_3',
       scheduledTime: '13:00',
       scheduledDate: new Date().toISOString().split('T')[0],
@@ -288,7 +261,7 @@ const store = {
     },
     {
       id: 'rem_4',
-      userId: 'usr_patient_1',
+      userId: 'usr_mayur_1',
       routineId: 'rtn_pat_4',
       scheduledTime: '13:30',
       scheduledDate: new Date().toISOString().split('T')[0],
@@ -300,7 +273,7 @@ const store = {
     },
     {
       id: 'rem_5',
-      userId: 'usr_patient_1',
+      userId: 'usr_mayur_1',
       routineId: 'rtn_pat_5',
       scheduledTime: '20:00',
       scheduledDate: new Date().toISOString().split('T')[0],
@@ -312,11 +285,11 @@ const store = {
     },
     {
       id: 'rem_6',
-      userId: 'usr_patient_1',
+      userId: 'usr_mayur_1',
       routineId: 'rtn_pat_6',
       scheduledTime: '20:30',
       scheduledDate: new Date().toISOString().split('T')[0],
-      compartment: 4,
+      compartment: 3,
       status: 'Upcoming',
       actualTime: null,
       confirmedBy: null,
@@ -324,11 +297,11 @@ const store = {
     },
     {
       id: 'rem_7',
-      userId: 'usr_patient_1',
+      userId: 'usr_mayur_1',
       routineId: 'rtn_pat_7',
       scheduledTime: '21:30',
       scheduledDate: new Date().toISOString().split('T')[0],
-      compartment: 4,
+      compartment: 3,
       status: 'Upcoming',
       actualTime: null,
       confirmedBy: null,
@@ -339,7 +312,7 @@ const store = {
   devices: [
     {
       id: 'ESP8266-SR-01',
-      userId: 'usr_patient_1',
+      userId: 'usr_mayur_1',
       model: 'NodeMCU ESP8266 V1.0 / Wemos D1 Mini',
       firmwareVersion: 'v2.1-SmartRoutine',
       status: 'online',
