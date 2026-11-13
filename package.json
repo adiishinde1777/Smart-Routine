@@ -4,11 +4,12 @@
   "description": "Smart Routine - Daily Lifestyle, Diet, Gym & Medicine Planner",
   "main": "server/server.js",
   "scripts": {
-    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "start": "node server/server.js",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "node server/server.js",
     "client": "npm run dev --prefix client",
-    "build": "npm run build --prefix client"
+    "build": "npm install --prefix server && npm install --prefix client && npm run build --prefix client",
+    "postinstall": "npm install --prefix server && npm install --prefix client"
   },
   "keywords": [
     "smart-routine",
@@ -21,6 +22,14 @@
   ],
   "author": "Smart Routine Team",
   "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mysql2": "^3.12.0",
+    "socket.io": "^4.8.1",
+    "uuid": "^11.1.0"
+  },
   "devDependencies": {
     "concurrently": "^9.1.2"
   }

@@ -64,6 +64,25 @@ app.get('/api/health', (req, res) => {
 // API Routes
 app.use('/api', apiRoutes);
 
+// Serve static client frontend in production if built
+const fs = require('fs');
+const clientDist = path.join(__dirname, '../client/dist');
+
+if (fs.existsSync(clientDist)) {
+  app.use(express.static(clientDist));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) {
+      return next();
+    }
+    const indexPath = path.join(clientDist, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(404).send('Page not found');
+    }
+  });
+}
+
 const PORT = process.env.PORT || 5001;
 
 server.listen(PORT, async () => {
