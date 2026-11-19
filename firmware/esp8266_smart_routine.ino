@@ -1,25 +1,24 @@
 /*
  * ======================================================================================
  * PROJECT: Smart Routine - Personal Lifestyle, Gym & Medicine Assistant
- * FIRMWARE: ESP8266 NodeMCU (I2C LCD + DS3231 RTC + 3 LEDs + Buzzer + Push Button)
+ * USER: Mayur (Daily Routine)
+ * FIRMWARE: ESP8266 NodeMCU (I2C LCD + DS3231 RTC + 1 Green LED + Buzzer + Push Button)
  * ======================================================================================
  * 
- * ---------------- COMPLETE PIN CONFIGURATION (Matching Summary Diagram) ----------------
- * Component   | ESP8266 Pin | Wiring Details
- * ------------+-------------+-----------------------------------------------------------
- * LCD SDA     | D2 (GPIO 4) | 16x2 I2C LCD SDA
- * LCD SCL     | D1 (GPIO 5) | 16x2 I2C LCD SCL
- * RTC SDA     | D2 (GPIO 4) | DS3231/DS1307 RTC SDA (Shared with LCD SDA on D2)
- * RTC SCL     | D1 (GPIO 5) | DS3231/DS1307 RTC SCL (Shared with LCD SCL on D1)
- * RTC VCC     | 3V3         | 3.3V Power (Shared with LCD VCC)
- * RTC GND     | GND         | Ground
- * Buzzer +    | D0 (GPIO 16)| Positive (+) leg to D0
- * Buzzer -    | GND         | Negative (-) leg to GND
- * LED 1 +     | D5 (GPIO 14)| Anode (+) through 220Ω to D5 (Slot 1)
- * LED 2 +     | D6 (GPIO 12)| Anode (+) through 220Ω to D6 (Slot 2)
- * LED 3 +     | D7 (GPIO 13)| Anode (+) through 220Ω to D7 (Slot 3)
- * सर्व LED -   | GND         | Cathode (-) of all 3 LEDs to GND
- * Push Button | D4 & GND    | Pin 1 to D4 (GPIO 2), Pin 2 to GND (INPUT_PULLUP)
+ * ---------------- COMPLETE PIN CONFIGURATION ----------------
+ * Component        | ESP8266 Pin | Wiring Details
+ * -----------------+-------------+------------------------------------------------------
+ * LCD SDA          | D2 (GPIO 4) | 16x2 I2C LCD SDA
+ * LCD SCL          | D1 (GPIO 5) | 16x2 I2C LCD SCL
+ * RTC SDA          | D2 (GPIO 4) | DS3231/DS1307 RTC SDA (Shared with LCD SDA on D2)
+ * RTC SCL          | D1 (GPIO 5) | DS3231/DS1307 RTC SCL (Shared with LCD SCL on D1)
+ * RTC & LCD VCC    | 3V3         | 3.3V Power
+ * RTC & LCD GND    | GND         | Ground
+ * Buzzer +         | D0 (GPIO 16)| Positive (+) leg to D0
+ * Buzzer -         | GND         | Negative (-) leg to GND
+ * Green LED +      | D5 (GPIO 14)| Anode (+) through 220Ω resistor to D5
+ * Green LED -      | GND         | Cathode (-) to Common GND
+ * Push Button      | D4 & GND    | Pin 1 to D4 (GPIO 2), Pin 2 to GND (INPUT_PULLUP)
  * ======================================================================================
  */
 
@@ -48,42 +47,31 @@ const char* DEVICE_ID     = "ESP8266-SR-01";
 #define D3 0
 #define D4 2
 #define D5 14
-#define D6 12
-#define D7 13
-#define D8 15
 #endif
 
 #define PIN_BUZZER       D0  // D0 (GPIO 16) -> Buzzer +
 #define PIN_LCD_SCL      D1  // D1 (GPIO 5)  -> LCD SCL & RTC SCL
 #define PIN_LCD_SDA      D2  // D2 (GPIO 4)  -> LCD SDA & RTC SDA
-#define PIN_BUTTON       D4  // D4 (GPIO 2)  -> Push Button (D4 & GND)
-#define PIN_LED_1        D5  // D5 (GPIO 14) -> LED 1 + (through 220Ω)
-#define PIN_LED_2        D6  // D6 (GPIO 12) -> LED 2 + (through 220Ω)
-#define PIN_LED_3        D7  // D7 (GPIO 13) -> LED 3 + (through 220Ω)
+#define PIN_BUTTON       D4  // D4 (GPIO 2)  -> Push Button (D4 आणि GND)
+#define PIN_GREEN_LED    D5  // D5 (GPIO 14) -> Green LED + (through 220Ω)
 
-// ---------------- BUZZER TYPE CONFIGURATION ----------------
-// बहुतांश Arduino Starter Kits मध्ये ACTIVE Buzzer असतो (digitalWrite HIGH ने वाजतो).
-// जर तुमचा Buzzer Passive असेल (फक्त बारीक क्लिक येत असेल) तर खाली false करा:
+// ---------------- BUZZER TYPE ----------------
 bool IS_ACTIVE_BUZZER = true;
 
 // ---------------- Hardware Objects ----------------
-LiquidCrystal_I2C lcd(0x27, 16, 2); // बहुतांश I2C LCD चा पत्ता 0x27 किंवा 0x3F असतो
+LiquidCrystal_I2C lcd(0x27, 16, 2); // I2C पत्ता 0x27 किंवा 0x3F
 RTC_DS3231 rtc;
 WiFiClient wifiClient;
 
 // ---------------- State Variables ----------------
 bool rtcDetected = false;
 bool isAlertActive = false;
-bool alertLed1 = false;
-bool alertLed2 = false;
-bool alertLed3 = false;
 String activeReminderIds = "";
 String activeRoutineName = "";
 unsigned long lastPollTime = 0;
-const unsigned long POLL_INTERVAL_MS = 3000; // दर ३ सेकंदांनी तपासणे
+const unsigned long POLL_INTERVAL_MS = 3000; // दर ३ सेकंदांनी सर्व्हर तपासणे
 unsigned long lastBlinkTime = 0;
 bool ledToggle = false;
-unsigned long lastClockDisplayTime = 0;
 
 // ---------------- Buzzer Drivers ----------------
 void buzzerOn() {
@@ -103,11 +91,13 @@ void buzzerOff() {
   digitalWrite(PIN_BUZZER, LOW);
 }
 
-// ---------------- Turn All 3 LEDs OFF ----------------
-void allLedsOff() {
-  digitalWrite(PIN_LED_1, LOW);
-  digitalWrite(PIN_LED_2, LOW);
-  digitalWrite(PIN_LED_3, LOW);
+// ---------------- Green LED Helpers ----------------
+void greenLedOn() {
+  digitalWrite(PIN_GREEN_LED, HIGH);
+}
+
+void greenLedOff() {
+  digitalWrite(PIN_GREEN_LED, LOW);
 }
 
 // ---------------- LCD Display Helpers ----------------
@@ -125,16 +115,14 @@ void turnLcdOff() {
   lcd.noBacklight();
 }
 
-// ---------------- Sound Initial Alert Chimes ----------------
+// ---------------- Sound Alert Chimes ----------------
 void triggerBuzzerChime() {
   for (int i = 0; i < 3; i++) {
-    if (alertLed1) digitalWrite(PIN_LED_1, HIGH);
-    if (alertLed2) digitalWrite(PIN_LED_2, HIGH);
-    if (alertLed3) digitalWrite(PIN_LED_3, HIGH);
+    greenLedOn();
     buzzerOn();
     delay(180);
     buzzerOff();
-    allLedsOff();
+    greenLedOff();
     delay(120);
   }
 }
@@ -142,7 +130,6 @@ void triggerBuzzerChime() {
 // ---------------- Server वरून Routine तपासणे ----------------
 void checkRoutineStatus() {
   if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("[WiFi] Reconnecting...");
     return;
   }
 
@@ -172,7 +159,7 @@ void checkRoutineStatus() {
           if (y >= 2024) {
             rtc.adjust(DateTime(y, m, d, h, min, s));
             lastRtcSync = millis();
-            Serial.printf("⏰ [RTC] Auto-synced with Server Time: %02d:%02d:%02d\n", h, min, s);
+            Serial.printf("⏰ [RTC] Auto-synced with Server: %02d:%02d:%02d\n", h, min, s);
           }
         }
       }
@@ -183,20 +170,6 @@ void checkRoutineStatus() {
       String line2 = doc["lcdLine2"] | "Ready";
 
       if (active) {
-        // Read active LEDs for each compartment (Slot 1, 2, 3)
-        alertLed1 = doc["led1"] | false;
-        alertLed2 = doc["led2"] | false;
-        alertLed3 = doc["led3"] | false;
-
-        // Backward compatibility if single compartment was sent
-        if (!alertLed1 && !alertLed2 && !alertLed3) {
-          int comp = doc["compartment"] | 1;
-          if (comp == 1) alertLed1 = true;
-          else if (comp == 2) alertLed2 = true;
-          else if (comp == 3) alertLed3 = true;
-          else alertLed1 = true;
-        }
-
         // Collect reminder IDs
         if (doc.containsKey("reminderIds")) {
           activeReminderIds = "";
@@ -213,34 +186,27 @@ void checkRoutineStatus() {
 
         if (!isAlertActive) {
           isAlertActive = true;
-          Serial.printf("\n🔔 [ALERT] Reminder Time! Active Slots: [1(D5):%s, 2(D6):%s, 3(D7):%s] - %s\n",
-                        alertLed1 ? "ON" : "OFF",
-                        alertLed2 ? "ON" : "OFF",
-                        alertLed3 ? "ON" : "OFF",
-                        activeRoutineName.c_str());
+          Serial.printf("\n🔔 [ALERT] Reminder Time Matched! Green LED (D5) ON - %s\n", activeRoutineName.c_str());
           updateLCD(line1, line2);
           triggerBuzzerChime();
         }
       } else {
+        // Routine चा टाईम नसेल किंवा संपला असेल तर LCD आणि Green LED पूर्ण बंद (Dark Mode)
         if (isAlertActive) {
           isAlertActive = false;
-          alertLed1 = false;
-          alertLed2 = false;
-          alertLed3 = false;
           activeReminderIds = "";
           buzzerOff();
-          allLedsOff();
+          greenLedOff();
           turnLcdOff();
+          Serial.println("💤 Routine alert ended. LCD & Green LED turned OFF (Dark Mode).");
         }
       }
     }
-  } else {
-    Serial.printf("[HTTP] GET failed, code: %d\n", httpCode);
   }
   http.end();
 }
 
-// ---------------- पुश बटन (D4) दाबल्यावर Server ला Confirmation पाठवणे ----------------
+// ---------------- पुश बटण (D4) दाबल्यावर Routine Confirm करणे ----------------
 void sendButtonConfirmation() {
   if (WiFi.status() != WL_CONNECTED) return;
 
@@ -269,32 +235,26 @@ void sendButtonConfirmation() {
     Serial.println("✅ [SUCCESS] Routine confirmed on server!");
     updateLCD("Routine Done!", "Great Job Mayur!");
     
-    // Stop ongoing alert alarm
+    // Stop ongoing alert alarm immediately
     isAlertActive = false;
-    alertLed1 = false;
-    alertLed2 = false;
-    alertLed3 = false;
     activeReminderIds = "";
     buzzerOff();
-    allLedsOff();
+    greenLedOff();
 
-    // Two short confirmation chimes
+    // Two short confirmation chimes (Green LED + Buzzer)
     for (int i = 0; i < 2; i++) {
-      digitalWrite(PIN_LED_1, HIGH);
-      digitalWrite(PIN_LED_2, HIGH);
-      digitalWrite(PIN_LED_3, HIGH);
+      greenLedOn();
       buzzerOn();
       delay(120);
       buzzerOff();
-      allLedsOff();
+      greenLedOff();
       delay(80);
     }
 
-    delay(1500); // 1.5 सेकंद संदेश दाखवून लगेच LCD OFF करणे
-    turnLcdOff(); // LCD पुन्हा पूर्णपणे OFF (Dark mode)
-    Serial.println("💤 Button acknowledged. LCD backlight is now OFF.");
+    delay(1500);  // 1.5 सेकंद संदेश दाखवून लगेच LCD OFF करणे
+    turnLcdOff(); // LCD पुन्हा पूर्णपणे OFF (Dark Mode)
+    Serial.println("💤 Button acknowledged. LCD backlight & LED are now OFF.");
   } else {
-    Serial.printf("❌ [ERROR] POST failed, code: %d\n", httpCode);
     updateLCD("Server Error", "Try Again");
     delay(1500);
     turnLcdOff();
@@ -314,63 +274,36 @@ void setup() {
   // Pin Modes Setup
   pinMode(PIN_BUTTON, INPUT_PULLUP); // D4 Push Button (D4 आणि GND)
   pinMode(PIN_BUZZER, OUTPUT);       // D0 Buzzer
-  pinMode(PIN_LED_1, OUTPUT);        // D5 LED 1 (Slot 1)
-  pinMode(PIN_LED_2, OUTPUT);        // D6 LED 2 (Slot 2)
-  pinMode(PIN_LED_3, OUTPUT);        // D7 LED 3 (Slot 3)
+  pinMode(PIN_GREEN_LED, OUTPUT);    // D5 Green LED
 
   buzzerOff();
-  allLedsOff();
+  greenLedOff();
 
-  // 1. HARDWARE SELF-TEST ON BOOT (Sequentially tests all 3 LEDs & Buzzer)
-  Serial.println("\n[TEST] ---------------- HARDWARE BOOT SELF-TEST ----------------");
-  
-  // LED 1 Test (D5)
-  Serial.println("[TEST] Testing LED 1 (D5 / Box 1)...");
-  digitalWrite(PIN_LED_1, HIGH);
-  delay(200);
-  digitalWrite(PIN_LED_1, LOW);
-
-  // LED 2 Test (D6)
-  Serial.println("[TEST] Testing LED 2 (D6 / Box 2)...");
-  digitalWrite(PIN_LED_2, HIGH);
-  delay(200);
-  digitalWrite(PIN_LED_2, LOW);
-
-  // LED 3 Test (D7)
-  Serial.println("[TEST] Testing LED 3 (D7 / Box 3)...");
-  digitalWrite(PIN_LED_3, HIGH);
-  delay(200);
-  digitalWrite(PIN_LED_3, LOW);
-
-  // All 3 LEDs + Buzzer Test
-  Serial.println("[TEST] Testing All 3 LEDs + Buzzer...");
-  digitalWrite(PIN_LED_1, HIGH);
-  digitalWrite(PIN_LED_2, HIGH);
-  digitalWrite(PIN_LED_3, HIGH);
+  // 1. HARDWARE BOOT SELF-TEST (Green LED + Buzzer)
+  Serial.println("[TEST] Testing Green LED (D5) & Buzzer (D0)...");
+  greenLedOn();
   buzzerOn();
   delay(300);
   buzzerOff();
-  allLedsOff();
+  greenLedOff();
   Serial.println("[TEST] Hardware Boot Self-Test Complete!\n");
 
   // 2. I2C Bus Initialize: SDA=D2, SCL=D1 (Shared for both LCD & RTC)
   Wire.begin(PIN_LCD_SDA, PIN_LCD_SCL);
 
-  // Initialize LCD
   lcd.init();
   lcd.backlight();
   updateLCD("Smart Routine", "Starting RTC...");
 
-  // Initialize DS3231 / DS1307 RTC
+  // Initialize DS3231 RTC
   if (rtc.begin()) {
     rtcDetected = true;
-    Serial.println("✅ [RTC] DS3231 / DS1307 RTC Module detected & running!");
+    Serial.println("✅ [RTC] DS3231 RTC Module detected & running!");
     if (rtc.lostPower()) {
-      Serial.println("⚠️ [RTC] RTC lost power, setting compile time...");
       rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
     }
     DateTime now = rtc.now();
-    Serial.printf("⏰ [RTC] Current RTC Time: %04d-%02d-%02d %02d:%02d:%02d\n",
+    Serial.printf("⏰ [RTC] Time: %04d-%02d-%02d %02d:%02d:%02d\n",
                   now.year(), now.month(), now.day(), now.hour(), now.minute(), now.second());
   } else {
     Serial.println("⚠️ [RTC] RTC Module NOT detected on I2C (Check D1/D2 connections)");
@@ -387,30 +320,27 @@ void setup() {
   while (WiFi.status() != WL_CONNECTED && attempts < 25) {
     delay(500);
     Serial.print(".");
-    digitalWrite(PIN_LED_1, !digitalRead(PIN_LED_1)); // Blink LED 1 while connecting
+    digitalWrite(PIN_GREEN_LED, !digitalRead(PIN_GREEN_LED)); // Blink Green LED while connecting
     attempts++;
   }
-  allLedsOff();
+  greenLedOff();
 
   if (WiFi.status() == WL_CONNECTED) {
     Serial.println("\n✅ Wi-Fi Connected!");
     Serial.print("ESP8266 IP Address: ");
     Serial.println(WiFi.localIP());
 
-    digitalWrite(PIN_LED_1, HIGH);
-    digitalWrite(PIN_LED_2, HIGH);
-    digitalWrite(PIN_LED_3, HIGH);
+    greenLedOn();
     updateLCD("WiFi Connected!", WiFi.localIP().toString());
     triggerBuzzerChime();
     delay(1500);
-    allLedsOff();
+    greenLedOff();
   } else {
-    Serial.println("\n⚠️ Wi-Fi Connection Timeout. Running in Offline Mode.");
     updateLCD("WiFi Failed", "Offline Mode");
     delay(1500);
   }
 
-  // Standby Sleep: Routine चा टाईम येईपर्यंत LCD पूर्णपणे बंद (Dark) ठेवणे
+  // Standby Sleep: Routine चा टाईम येईपर्यंत LCD पूर्णपणे बंद (Dark Mode) ठेवणे
   turnLcdOff();
   Serial.println("💤 [STANDBY] LCD is now OFF. Will automatically turn ON only when routine time arrives!");
 }
@@ -422,44 +352,35 @@ void loop() {
     delay(50); // Debounce delay
     if (digitalRead(PIN_BUTTON) == LOW) {
       sendButtonConfirmation();
-      // Wait until button is released
       while (digitalRead(PIN_BUTTON) == LOW) {
         delay(20);
       }
     }
   }
 
-  // 2. Alert LED & Buzzer pulsing when reminder is active
+  // 2. Alert Green LED & Buzzer pulsing when routine reminder is active
   if (isAlertActive) {
     if (millis() - lastBlinkTime > 500) {
       lastBlinkTime = millis();
       ledToggle = !ledToggle;
 
       if (ledToggle) {
-        // Blink only the LED(s) corresponding to the active compartment(s)!
-        // If 2 medicines are scheduled at the same time, BOTH LEDs blink!
-        if (alertLed1) digitalWrite(PIN_LED_1, HIGH);
-        if (alertLed2) digitalWrite(PIN_LED_2, HIGH);
-        if (alertLed3) digitalWrite(PIN_LED_3, HIGH);
-
+        greenLedOn();
         buzzerOn();
         delay(180); // 180ms audible beep
         buzzerOff();
       } else {
-        allLedsOff();
+        greenLedOff();
       }
     }
   }
 
   // 3. Periodic Poll from Server (every 3 seconds)
-  // जेव्हा Routine चा time match होईल, तेव्हा checkRoutineStatus() आपोआप LCD आणि LED चालू करेल.
+  // जेव्हा वेळ मॅच होईल, तेव्हा checkRoutineStatus() आपोआप LCD आणि Green LED चालू करेल.
   if (millis() - lastPollTime > POLL_INTERVAL_MS) {
     lastPollTime = millis();
     checkRoutineStatus();
   }
-
-  yield();
-}
 
   yield();
 }
