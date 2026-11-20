@@ -2,23 +2,25 @@
  * ======================================================================================
  * PROJECT: Smart Routine - Personal Lifestyle, Gym & Medicine Assistant
  * USER: Mayur (Daily Routine)
- * FIRMWARE: ESP8266 NodeMCU (I2C LCD + DS3231 RTC + 1 Green LED + Buzzer + Push Button)
+ * FIRMWARE: ESP8266 NodeMCU (I2C LCD + DS3231 RTC + 3 LEDs + Buzzer + Push Button)
  * ======================================================================================
  * 
  * ---------------- COMPLETE PIN CONFIGURATION ----------------
- * Component        | ESP8266 Pin | Wiring Details
- * -----------------+-------------+------------------------------------------------------
- * LCD SDA          | D2 (GPIO 4) | 16x2 I2C LCD SDA
- * LCD SCL          | D1 (GPIO 5) | 16x2 I2C LCD SCL
- * RTC SDA          | D2 (GPIO 4) | DS3231/DS1307 RTC SDA (Shared with LCD SDA on D2)
- * RTC SCL          | D1 (GPIO 5) | DS3231/DS1307 RTC SCL (Shared with LCD SCL on D1)
- * RTC & LCD VCC    | 3V3         | 3.3V Power
- * RTC & LCD GND    | GND         | Ground
- * Buzzer +         | D0 (GPIO 16)| Positive (+) leg to D0
- * Buzzer -         | GND         | Negative (-) leg to GND
- * Green LED +      | D5 (GPIO 14)| Anode (+) through 220Ω resistor to D5
- * Green LED -      | GND         | Cathode (-) to Common GND
- * Push Button      | D4 & GND    | Pin 1 to D4 (GPIO 2), Pin 2 to GND (INPUT_PULLUP)
+ * Component          | ESP8266 Pin | Wiring Details
+ * -------------------+-------------+---------------------------------------------------
+ * LCD SDA            | D2 (GPIO 4) | 16x2 I2C LCD SDA
+ * LCD SCL            | D1 (GPIO 5) | 16x2 I2C LCD SCL
+ * RTC SDA            | D2 (GPIO 4) | DS3231 RTC SDA (Shared with LCD SDA on D2)
+ * RTC SCL            | D1 (GPIO 5) | DS3231 RTC SCL (Shared with LCD SCL on D1)
+ * RTC & LCD VCC      | 3V3         | 3.3V Power
+ * RTC & LCD GND      | GND         | Common Ground
+ * Buzzer +           | D0 (GPIO 16)| Positive (+) leg to D0
+ * Buzzer -           | GND         | Negative (-) leg to GND
+ * 🔴 RED LED +       | D5 (GPIO 14)| Anode (+) through 220Ω to D5 (1st Medicine - Slot 1)
+ * 🟡 YELLOW LED +    | D6 (GPIO 12)| Anode (+) through 220Ω to D6 (2nd Medicine - Slot 2)
+ * 🟢 GREEN LED +     | D7 (GPIO 13)| Anode (+) through 220Ω to D7 (3rd Medicine - Slot 3)
+ * सर्व LEDs - (Cathode)| GND        | Cathode (-) legs of all 3 LEDs to Common GND
+ * Push Button        | D4 & GND    | Pin 1 to D4 (GPIO 2), Pin 2 to GND (INPUT_PULLUP)
  * ======================================================================================
  */
 
@@ -35,7 +37,7 @@
 const char* WIFI_SSID     = "YOUR_WIFI_NAME";
 const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
 
-// लॅपटॉपचा लोकल IP पत्ता (Server URL):
+// लॅपटॉप किंवा सर्व्हरचा IP पत्ता (Server URL):
 const char* SERVER_BASE   = "http://10.99.33.207:5001";
 const char* DEVICE_ID     = "ESP8266-SR-01";
 
@@ -47,25 +49,32 @@ const char* DEVICE_ID     = "ESP8266-SR-01";
 #define D3 0
 #define D4 2
 #define D5 14
+#define D6 12
+#define D7 13
 #endif
 
 #define PIN_BUZZER       D0  // D0 (GPIO 16) -> Buzzer +
 #define PIN_LCD_SCL      D1  // D1 (GPIO 5)  -> LCD SCL & RTC SCL
 #define PIN_LCD_SDA      D2  // D2 (GPIO 4)  -> LCD SDA & RTC SDA
 #define PIN_BUTTON       D4  // D4 (GPIO 2)  -> Push Button (D4 आणि GND)
-#define PIN_GREEN_LED    D5  // D5 (GPIO 14) -> Green LED + (through 220Ω)
+#define PIN_LED_RED      D5  // D5 (GPIO 14) -> 🔴 RED LED (1st Medicine / Slot 1)
+#define PIN_LED_YELLOW   D6  // D6 (GPIO 12) -> 🟡 YELLOW LED (2nd Medicine / Slot 2)
+#define PIN_LED_GREEN    D7  // D7 (GPIO 13) -> 🟢 GREEN LED (3rd Medicine / Slot 3)
 
 // ---------------- BUZZER TYPE ----------------
 bool IS_ACTIVE_BUZZER = true;
 
 // ---------------- Hardware Objects ----------------
-LiquidCrystal_I2C lcd(0x27, 16, 2); // I2C पत्ता 0x27 किंवा 0x3F
+LiquidCrystal_I2C lcd(0x27, 16, 2); // बहुतांश I2C LCD चा पत्ता 0x27 किंवा 0x3F असतो
 RTC_DS3231 rtc;
 WiFiClient wifiClient;
 
 // ---------------- State Variables ----------------
 bool rtcDetected = false;
 bool isAlertActive = false;
+bool alertLedRed = false;    // 1st Medicine (Slot 1)
+bool alertLedYellow = false; // 2nd Medicine (Slot 2)
+bool alertLedGreen = false;  // 3rd Medicine (Slot 3)
 String activeReminderIds = "";
 String activeRoutineName = "";
 unsigned long lastPollTime = 0;
@@ -91,13 +100,11 @@ void buzzerOff() {
   digitalWrite(PIN_BUZZER, LOW);
 }
 
-// ---------------- Green LED Helpers ----------------
-void greenLedOn() {
-  digitalWrite(PIN_GREEN_LED, HIGH);
-}
-
-void greenLedOff() {
-  digitalWrite(PIN_GREEN_LED, LOW);
+// ---------------- All LEDs Helper ----------------
+void allLedsOff() {
+  digitalWrite(PIN_LED_RED, LOW);
+  digitalWrite(PIN_LED_YELLOW, LOW);
+  digitalWrite(PIN_LED_GREEN, LOW);
 }
 
 // ---------------- LCD Display Helpers ----------------
@@ -118,11 +125,13 @@ void turnLcdOff() {
 // ---------------- Sound Alert Chimes ----------------
 void triggerBuzzerChime() {
   for (int i = 0; i < 3; i++) {
-    greenLedOn();
+    if (alertLedRed) digitalWrite(PIN_LED_RED, HIGH);
+    if (alertLedYellow) digitalWrite(PIN_LED_YELLOW, HIGH);
+    if (alertLedGreen) digitalWrite(PIN_LED_GREEN, HIGH);
     buzzerOn();
     delay(180);
     buzzerOff();
-    greenLedOff();
+    allLedsOff();
     delay(120);
   }
 }
@@ -170,6 +179,22 @@ void checkRoutineStatus() {
       String line2 = doc["lcdLine2"] | "Ready";
 
       if (active) {
+        // औषध १ (Slot 1) -> 🔴 RED LED (D5)
+        // औषध २ (Slot 2) -> 🟡 YELLOW LED (D6)
+        // औषध ३ (Slot 3) -> 🟢 GREEN LED (D7)
+        alertLedRed = doc["led1"] | false;
+        alertLedYellow = doc["led2"] | false;
+        alertLedGreen = doc["led3"] | false;
+
+        // Backward compatibility if single compartment was sent
+        if (!alertLedRed && !alertLedYellow && !alertLedGreen) {
+          int comp = doc["compartment"] | 1;
+          if (comp == 1) alertLedRed = true;
+          else if (comp == 2) alertLedYellow = true;
+          else if (comp == 3) alertLedGreen = true;
+          else alertLedRed = true;
+        }
+
         // Collect reminder IDs
         if (doc.containsKey("reminderIds")) {
           activeReminderIds = "";
@@ -186,19 +211,26 @@ void checkRoutineStatus() {
 
         if (!isAlertActive) {
           isAlertActive = true;
-          Serial.printf("\n🔔 [ALERT] Reminder Time Matched! Green LED (D5) ON - %s\n", activeRoutineName.c_str());
+          Serial.printf("\n🔔 [ALERT] Reminder Time Matched! [🔴 Red(D5):%s, 🟡 Yellow(D6):%s, 🟢 Green(D7):%s] - %s\n",
+                        alertLedRed ? "ON" : "OFF",
+                        alertLedYellow ? "ON" : "OFF",
+                        alertLedGreen ? "ON" : "OFF",
+                        activeRoutineName.c_str());
           updateLCD(line1, line2);
           triggerBuzzerChime();
         }
       } else {
-        // Routine चा टाईम नसेल किंवा संपला असेल तर LCD आणि Green LED पूर्ण बंद (Dark Mode)
+        // Routine चा टाईम नसेल किंवा संपला असेल तर LCD, LEDs आणि Buzzer पूर्ण बंद (Dark Mode)
         if (isAlertActive) {
           isAlertActive = false;
+          alertLedRed = false;
+          alertLedYellow = false;
+          alertLedGreen = false;
           activeReminderIds = "";
           buzzerOff();
-          greenLedOff();
+          allLedsOff();
           turnLcdOff();
-          Serial.println("💤 Routine alert ended. LCD & Green LED turned OFF (Dark Mode).");
+          Serial.println("💤 Routine alert ended. LCD & LEDs turned OFF (Dark Mode).");
         }
       }
     }
@@ -237,23 +269,28 @@ void sendButtonConfirmation() {
     
     // Stop ongoing alert alarm immediately
     isAlertActive = false;
+    alertLedRed = false;
+    alertLedYellow = false;
+    alertLedGreen = false;
     activeReminderIds = "";
     buzzerOff();
-    greenLedOff();
+    allLedsOff();
 
-    // Two short confirmation chimes (Green LED + Buzzer)
+    // Two short confirmation chimes
     for (int i = 0; i < 2; i++) {
-      greenLedOn();
+      digitalWrite(PIN_LED_RED, HIGH);
+      digitalWrite(PIN_LED_YELLOW, HIGH);
+      digitalWrite(PIN_LED_GREEN, HIGH);
       buzzerOn();
       delay(120);
       buzzerOff();
-      greenLedOff();
+      allLedsOff();
       delay(80);
     }
 
     delay(1500);  // 1.5 सेकंद संदेश दाखवून लगेच LCD OFF करणे
     turnLcdOff(); // LCD पुन्हा पूर्णपणे OFF (Dark Mode)
-    Serial.println("💤 Button acknowledged. LCD backlight & LED are now OFF.");
+    Serial.println("💤 Button acknowledged. LCD backlight & LEDs are now OFF.");
   } else {
     updateLCD("Server Error", "Try Again");
     delay(1500);
@@ -272,20 +309,26 @@ void setup() {
   Serial.println("=======================================================");
 
   // Pin Modes Setup
-  pinMode(PIN_BUTTON, INPUT_PULLUP); // D4 Push Button (D4 आणि GND)
-  pinMode(PIN_BUZZER, OUTPUT);       // D0 Buzzer
-  pinMode(PIN_GREEN_LED, OUTPUT);    // D5 Green LED
+  pinMode(PIN_BUTTON, INPUT_PULLUP);    // D4 Push Button (D4 आणि GND)
+  pinMode(PIN_BUZZER, OUTPUT);          // D0 Buzzer
+  pinMode(PIN_LED_RED, OUTPUT);         // D5 🔴 Red LED (1st Medicine)
+  pinMode(PIN_LED_YELLOW, OUTPUT);      // D6 🟡 Yellow LED (2nd Medicine)
+  pinMode(PIN_LED_GREEN, OUTPUT);       // D7 🟢 Green LED (3rd Medicine)
 
   buzzerOff();
-  greenLedOff();
+  allLedsOff();
 
-  // 1. HARDWARE BOOT SELF-TEST (Green LED + Buzzer)
-  Serial.println("[TEST] Testing Green LED (D5) & Buzzer (D0)...");
-  greenLedOn();
-  buzzerOn();
-  delay(300);
-  buzzerOff();
-  greenLedOff();
+  // 1. HARDWARE BOOT SELF-TEST (Sequentially tests Red, Yellow, Green LEDs & Buzzer)
+  Serial.println("[TEST] Testing LEDs & Buzzer...");
+  digitalWrite(PIN_LED_RED, HIGH); delay(200); digitalWrite(PIN_LED_RED, LOW);
+  digitalWrite(PIN_LED_YELLOW, HIGH); delay(200); digitalWrite(PIN_LED_YELLOW, LOW);
+  digitalWrite(PIN_LED_GREEN, HIGH); delay(200); digitalWrite(PIN_LED_GREEN, LOW);
+
+  digitalWrite(PIN_LED_RED, HIGH);
+  digitalWrite(PIN_LED_YELLOW, HIGH);
+  digitalWrite(PIN_LED_GREEN, HIGH);
+  buzzerOn(); delay(300); buzzerOff();
+  allLedsOff();
   Serial.println("[TEST] Hardware Boot Self-Test Complete!\n");
 
   // 2. I2C Bus Initialize: SDA=D2, SCL=D1 (Shared for both LCD & RTC)
@@ -320,21 +363,21 @@ void setup() {
   while (WiFi.status() != WL_CONNECTED && attempts < 25) {
     delay(500);
     Serial.print(".");
-    digitalWrite(PIN_GREEN_LED, !digitalRead(PIN_GREEN_LED)); // Blink Green LED while connecting
+    digitalWrite(PIN_LED_YELLOW, !digitalRead(PIN_LED_YELLOW)); // Blink Yellow LED while connecting
     attempts++;
   }
-  greenLedOff();
+  allLedsOff();
 
   if (WiFi.status() == WL_CONNECTED) {
     Serial.println("\n✅ Wi-Fi Connected!");
     Serial.print("ESP8266 IP Address: ");
     Serial.println(WiFi.localIP());
 
-    greenLedOn();
+    digitalWrite(PIN_LED_GREEN, HIGH);
     updateLCD("WiFi Connected!", WiFi.localIP().toString());
     triggerBuzzerChime();
     delay(1500);
-    greenLedOff();
+    allLedsOff();
   } else {
     updateLCD("WiFi Failed", "Offline Mode");
     delay(1500);
@@ -358,25 +401,31 @@ void loop() {
     }
   }
 
-  // 2. Alert Green LED & Buzzer pulsing when routine reminder is active
+  // 2. Alert LEDs & Buzzer pulsing when routine reminder is active
   if (isAlertActive) {
     if (millis() - lastBlinkTime > 500) {
       lastBlinkTime = millis();
       ledToggle = !ledToggle;
 
       if (ledToggle) {
-        greenLedOn();
+        // औषध १ ची वेळ असेल तर 🔴 RED LED ब्लिंक होईल
+        if (alertLedRed) digitalWrite(PIN_LED_RED, HIGH);
+        // औषध २ ची वेळ असेल तर 🟡 YELLOW LED ब्लिंक होईल
+        if (alertLedYellow) digitalWrite(PIN_LED_YELLOW, HIGH);
+        // औषध ३ ची वेळ असेल तर 🟢 GREEN LED ब्लिंक होईल
+        if (alertLedGreen) digitalWrite(PIN_LED_GREEN, HIGH);
+
         buzzerOn();
         delay(180); // 180ms audible beep
         buzzerOff();
       } else {
-        greenLedOff();
+        allLedsOff();
       }
     }
   }
 
   // 3. Periodic Poll from Server (every 3 seconds)
-  // जेव्हा वेळ मॅच होईल, तेव्हा checkRoutineStatus() आपोआप LCD आणि Green LED चालू करेल.
+  // जेव्हा वेळ मॅच होईल, तेव्हा checkRoutineStatus() आपोआप LCD आणि संबंधित LED चालू करेल.
   if (millis() - lastPollTime > POLL_INTERVAL_MS) {
     lastPollTime = millis();
     checkRoutineStatus();
